@@ -30,7 +30,7 @@
     <packaging>pom</packaging>
     <name>SSO Agent server feature</name>
     <url>http://wso2.org</url>
-    <description>This feature contains sso agent which is a library for sso and openid</description>
+    <description>This feature contains sso agent which is a library for SAML</description>
 
     <dependencies>
         <dependency>
@@ -51,14 +51,6 @@
         <dependency>
             <groupId>org.wso2.orbit.joda-time</groupId>
             <artifactId>joda-time</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.orbit.org.openid4java</groupId>
-            <artifactId>openid4java</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.orbit.org.apache.oltu.oauth2</groupId>
-            <artifactId>oltu</artifactId>
         </dependency>
         <dependency>
             <groupId>net.sf.ehcache.wso2</groupId>
@@ -92,8 +84,6 @@
                                 <bundleDef>org.wso2.carbon.identity.agent.sso.java:org.wso2.carbon.identity.sso.agent</bundleDef>
                                 <bundleDef>org.wso2.orbit.org.opensaml:opensaml</bundleDef>
                                 <bundleDef>org.wso2.orbit.joda-time:joda-time</bundleDef>
-                                <bundleDef>org.wso2.orbit.org.openid4java:openid4java</bundleDef>
-                                <bundleDef>org.wso2.orbit.org.apache.oltu.oauth2:oltu</bundleDef>
                                 <bundleDef>org.wso2.orbit.org.apache.httpcomponents:httpclient</bundleDef>
                                 <bundleDef>net.sf.ehcache.wso2:ehcache</bundleDef>
                             </bundles>

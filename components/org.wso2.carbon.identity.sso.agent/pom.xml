@@ -30,7 +30,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.identity.sso.agent</artifactId>
     <packaging>bundle</packaging>
-    <name>WSO2 Carbon - SAML2-OpenID SSO Agent</name>
+    <name>WSO2 Carbon - SAML2 SSO Agent</name>
     <url>http://www.wso2.com</url>
 
     <dependencies>
@@ -82,16 +82,8 @@
             <artifactId>joda-time</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.openid4java</groupId>
-            <artifactId>openid4java</artifactId>
-        </dependency>
-        <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.oltu.oauth2</groupId>
-            <artifactId>org.apache.oltu.oauth2.client</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -152,7 +144,6 @@
                             org.apache.xerces.impl;resolution:=optional,
                             org.apache.xml.security.*; version="${wss4j.xml.security.imp.pkg.version.range}",
                             org.joda.time;version="${joda.wso2.osgi.version.range}",
-                            org.openid4java.*;version="${openid4java.wso2.osgi.version.range}";resolution:=optional,
                             org.opensaml.*; version="${opensaml2.wso2.osgi.version.range}",
                             net.shibboleth.utilities.java.support.*; version="${opensaml2.wso2.osgi.version.range}",
                             org.w3c.dom.*,

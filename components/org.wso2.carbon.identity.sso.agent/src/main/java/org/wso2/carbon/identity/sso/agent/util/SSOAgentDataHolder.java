@@ -20,13 +20,11 @@
 
 package org.wso2.carbon.identity.sso.agent.util;
 
-import org.openid4java.consumer.ConsumerManager;
 
 public class SSOAgentDataHolder {
 
     private  Object signatureValidator = null;
 
-    private  ConsumerManager consumerManager;
     private  static SSOAgentDataHolder instance = new SSOAgentDataHolder();
 
     private SSOAgentDataHolder() {
@@ -40,19 +38,7 @@ public class SSOAgentDataHolder {
         this.signatureValidator = signatureValidator;
     }
 
-
-    public ConsumerManager getConsumerManager() {
-        return consumerManager;
-    }
-
     public static SSOAgentDataHolder getInstance(){
         return instance;
     }
-
-
-    public void setConsumerManager(ConsumerManager consumerManager) {
-        this.consumerManager = consumerManager;
-    }
-
-
 }
