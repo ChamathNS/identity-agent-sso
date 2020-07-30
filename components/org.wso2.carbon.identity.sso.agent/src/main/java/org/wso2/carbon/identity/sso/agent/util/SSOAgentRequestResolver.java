@@ -59,12 +59,6 @@ public class SSOAgentRequestResolver {
                 request.getParameter(SSOAgentConstants.SAML2SSO.SAML2_ARTIFACT_RESP) != null;
     }
 
-    public boolean isOpenIdLoginResponse() {
-        return ssoAgentConfig.isOpenIdLoginEnabled() &&
-                ssoAgentConfig.getOpenId().getMode() != null &&
-                !ssoAgentConfig.getOpenId().getMode().trim().isEmpty();
-    }
-
     public boolean isSLOURL() {
         return ssoAgentConfig.isSAML2SSOLoginEnabled() &&
                 ssoAgentConfig.getSAML2().isSLOEnabled() &&
@@ -82,31 +76,11 @@ public class SSOAgentRequestResolver {
                 request.getRequestURI().endsWith(ssoAgentConfig.getSAML2SSOURL());
     }
 
-    public boolean isOpenIdURL() {
-        return ssoAgentConfig.isOpenIdLoginEnabled() &&
-                request.getRequestURI().endsWith(ssoAgentConfig.getOpenIdURL()) &&
-                ssoAgentConfig.getOpenId().getClaimedId() != null &&
-                !ssoAgentConfig.getOpenId().getClaimedId().trim().isEmpty();
-    }
 
     public boolean isPassiveAuthnRequest() {
-        return (ssoAgentConfig.isSAML2SSOLoginEnabled() ||
-                ssoAgentConfig.isOpenIdLoginEnabled()) &&
+        return (ssoAgentConfig.isSAML2SSOLoginEnabled() &&
                 (request.getSession(false) == null ||
-                        request.getSession(false).getAttribute(SSOAgentConstants.SESSION_BEAN_NAME) == null);
-    }
-
-    public boolean isSAML2OAuth2GrantRequest() {
-        return ssoAgentConfig.isSAML2SSOLoginEnabled() &&
-                ssoAgentConfig.isOAuth2SAML2GrantEnabled() &&
-                request.getRequestURI().endsWith(ssoAgentConfig.getOAuth2SAML2GrantURL()) &&
-                request.getSession(false) != null &&
-                request.getSession(false).getAttribute(SSOAgentConstants.SESSION_BEAN_NAME) != null &&
-                ((LoggedInSessionBean) request.getSession(false).getAttribute(
-                        SSOAgentConstants.SESSION_BEAN_NAME)).getSAML2SSO() != null &&
-                ((LoggedInSessionBean) request.getSession(false).getAttribute(
-                        SSOAgentConstants.SESSION_BEAN_NAME)).getSAML2SSO()
-                        .getAssertion() != null;
+                        request.getSession(false).getAttribute(SSOAgentConstants.SESSION_BEAN_NAME) == null));
     }
 
     public boolean isURLToSkip() {

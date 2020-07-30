@@ -26,7 +26,6 @@ import org.opensaml.saml.common.xml.SAMLConstants;
 import org.wso2.carbon.identity.sso.agent.AESDecryptor;
 import org.wso2.carbon.identity.sso.agent.util.SSOAgentConstants;
 import org.wso2.carbon.identity.sso.agent.exception.SSOAgentException;
-import org.wso2.carbon.identity.sso.agent.openid.AttributesRequestor;
 import org.wso2.carbon.identity.sso.agent.security.SSOAgentCarbonX509Credential;
 import org.wso2.carbon.identity.sso.agent.security.SSOAgentX509Credential;
 
@@ -65,20 +64,13 @@ public class SSOAgentConfig {
     private static final String ARGUMENT = "sun.java.command";
 
     private Boolean isSAML2SSOLoginEnabled = false;
-    private Boolean isOpenIdLoginEnabled = false;
-    private Boolean isOAuth2SAML2GrantEnabled = false;
 
     private String saml2SSOURL = null;
-    private String openIdURL = null;
-    private String oauth2SAML2GrantURL = null;
     private Set<String> skipURIs = new HashSet<String>();
 
     private Map<String, String[]> queryParams = new HashMap<String, String[]>();
 
     private SAML2 saml2 = new SAML2();
-    private OpenID openId = new OpenID();
-    private OIDC oidc = new OIDC();
-    private OAuth2 oauth2 = new OAuth2();
     private String requestQueryParameters;
     private Boolean enableHostNameVerification = false;
     private Boolean enableSSLVerification = false;
@@ -105,36 +97,12 @@ public class SSOAgentConfig {
         return isSAML2SSOLoginEnabled;
     }
 
-    public Boolean isOpenIdLoginEnabled() {
-        return isOpenIdLoginEnabled;
-    }
-
-    public Boolean isOAuth2SAML2GrantEnabled() {
-        return isOAuth2SAML2GrantEnabled;
-    }
-
     public String getSAML2SSOURL() {
         return saml2SSOURL;
     }
 
     public void setSAML2SSOURL(String saml2SSOURL) {
         this.saml2SSOURL = saml2SSOURL;
-    }
-
-    public String getOpenIdURL() {
-        return openIdURL;
-    }
-
-    public void setOpenIdURL(String openIdURL) {
-        this.openIdURL = openIdURL;
-    }
-
-    public String getOAuth2SAML2GrantURL() {
-        return oauth2SAML2GrantURL;
-    }
-
-    public void setOAuth2SAML2GrantURL(String oauth2SAML2GrantURL) {
-        this.oauth2SAML2GrantURL = oauth2SAML2GrantURL;
     }
 
     public Set<String> getSkipURIs() {
@@ -157,26 +125,8 @@ public class SSOAgentConfig {
         return saml2;
     }
 
-    public OAuth2 getOAuth2() {
-        return oauth2;
-    }
-
-    public OpenID getOpenId() {
-        return openId;
-    }
-
-    public OIDC getOidc() { return oidc; }
-
     public void setSAML2SSOLoginEnabled(Boolean isSAML2SSOLoginEnabled) {
         this.isSAML2SSOLoginEnabled = isSAML2SSOLoginEnabled;
-    }
-
-    public void setOpenIdLoginEnabled(Boolean isOpenIdLoginEnabled) {
-        this.isOpenIdLoginEnabled = isOpenIdLoginEnabled;
-    }
-
-    public void setOAuth2SAML2GrantEnabled(Boolean isOAuth2SAML2GrantEnabled) {
-        this.isOAuth2SAML2GrantEnabled = isOAuth2SAML2GrantEnabled;
     }
 
     private InputStream getKeyStoreStream() {
@@ -315,30 +265,7 @@ public class SSOAgentConfig {
             isSAML2SSOLoginEnabled = false;
         }
 
-        String isOpenIdLoginEnabledString = properties.getProperty(
-                SSOAgentConstants.SSOAgentConfig.ENABLE_OPENID_SSO_LOGIN);
-        if (isOpenIdLoginEnabledString != null) {
-            isOpenIdLoginEnabled = Boolean.parseBoolean(isOpenIdLoginEnabledString);
-        } else {
-            LOGGER.log(Level.FINE, SSOAgentConstants.SSOAgentConfig.ENABLE_OPENID_SSO_LOGIN +
-                    " not configured. Defaulting to \'false\'");
-            isOpenIdLoginEnabled = false;
-        }
-
-        String isSAML2OAuth2GrantEnabledString = properties.getProperty(
-                SSOAgentConstants.SSOAgentConfig.ENABLE_OAUTH2_SAML2_OAUTH2_GRANT);
-        if (isSAML2OAuth2GrantEnabledString != null) {
-            isOAuth2SAML2GrantEnabled = Boolean.parseBoolean(isSAML2OAuth2GrantEnabledString);
-        } else {
-            LOGGER.log(Level.FINE, SSOAgentConstants.SSOAgentConfig.ENABLE_OAUTH2_SAML2_OAUTH2_GRANT +
-                    " not configured. Defaulting to \'false\'");
-            isOAuth2SAML2GrantEnabled = false;
-        }
-
         saml2SSOURL = properties.getProperty(SSOAgentConstants.SSOAgentConfig.SAML2_SSO_URL);
-        openIdURL = properties.getProperty(SSOAgentConstants.SSOAgentConfig.OPENID_URL);
-        oauth2SAML2GrantURL = properties.getProperty(
-                SSOAgentConstants.SSOAgentConfig.OAUTH2_SAML2_GRANT_URL);
 
         String skipURIsString = properties.getProperty(SSOAgentConstants.SSOAgentConfig.SKIP_URIS);
         if (!StringUtils.isBlank(skipURIsString)) {
@@ -475,47 +402,6 @@ public class SSOAgentConfig {
         saml2.enableArtifactResolveSigning = StringUtils.equals(
                 properties.getProperty(SSOAgentConstants.SSOAgentConfig.SAML2.ENABLE_ARTIFACT_RESOLVE_SIGNING), "true");
 
-        oauth2.tokenURL = properties.getProperty(
-                SSOAgentConstants.SSOAgentConfig.OAuth2.TOKEN_URL);
-        oauth2.clientId = properties.getProperty(SSOAgentConstants.SSOAgentConfig.OAuth2.CLIENT_ID);
-        oauth2.clientSecret = properties.getProperty(SSOAgentConstants.SSOAgentConfig.OAuth2.CLIENT_SECRET);
-
-        openId.providerURL = properties.getProperty(
-                SSOAgentConstants.SSOAgentConfig.OpenID.PROVIDER_URL);
-        openId.returnToURL = properties.getProperty(SSOAgentConstants.SSOAgentConfig.OpenID.RETURN_TO_URL);
-
-        String isAttributeExchangeEnabledString = properties.getProperty(
-                SSOAgentConstants.SSOAgentConfig.OpenID.ENABLE_ATTRIBUTE_EXCHANGE);
-        if (isAttributeExchangeEnabledString != null) {
-            openId.isAttributeExchangeEnabled = Boolean.parseBoolean(isAttributeExchangeEnabledString);
-        } else {
-            LOGGER.log(Level.FINE, "\'" + SSOAgentConstants.SSOAgentConfig.OpenID.ENABLE_ATTRIBUTE_EXCHANGE +
-                    "\' not configured. Defaulting to \'true\'");
-            openId.isAttributeExchangeEnabled = true;
-        }
-
-        String isDumbModeEnabledString = properties.getProperty(
-                SSOAgentConstants.SSOAgentConfig.OpenID.ENABLE_DUMB_MODE);
-        if (isAttributeExchangeEnabledString != null) {
-            openId.isDumbModeEnabled = Boolean.parseBoolean(isDumbModeEnabledString);
-        } else {
-            LOGGER.log(Level.FINE, "\'" + SSOAgentConstants.SSOAgentConfig.OpenID.ENABLE_DUMB_MODE +
-                    "\' not configured. Defaulting to \'false\'");
-            openId.isDumbModeEnabled = false;
-        }
-
-        oidc.setConsumerKey(properties.getProperty(SSOAgentConstants.SSOAgentConfig.OIDC.CONSUMER_KEY));
-        oidc.setConsumerSecret(properties.getProperty(SSOAgentConstants.SSOAgentConfig.OIDC.CONSUMER_SECRET));
-        oidc.setAuthzEndpoint(properties.getProperty(SSOAgentConstants.SSOAgentConfig.OIDC.OAUTH2_AUTHZ_ENDPOINT));
-        oidc.setAuthzGrantType(properties.getProperty(SSOAgentConstants.SSOAgentConfig.OIDC.OAUTH2_GRANT_TYPE));
-        oidc.setCallBackUrl(properties.getProperty(SSOAgentConstants.SSOAgentConfig.OIDC.CALL_BACK_URL));
-        oidc.setOIDCLogoutEndpoint(properties.getProperty(SSOAgentConstants.SSOAgentConfig.OIDC.OIDC_LOGOUT_ENDPOINT));
-        oidc.setSessionIFrameEndpoint(properties.getProperty(SSOAgentConstants.SSOAgentConfig.OIDC
-                .OIDC_SESSION_IFRAME_ENDPOINT));
-        oidc.setScope(properties.getProperty(SSOAgentConstants.SSOAgentConfig.OIDC.SCOPE));
-        oidc.setPostLogoutRedirectUri(properties.getProperty(SSOAgentConstants.SSOAgentConfig.OIDC
-                .POST_LOGOUT_REDIRECT_RUI));
-
         if (properties.getProperty("KeyStore") != null) {
             try {
                 keyStoreStream = new FileInputStream(properties.getProperty("KeyStore"));
@@ -557,21 +443,6 @@ public class SSOAgentConfig {
         if (isSAML2SSOLoginEnabled && saml2SSOURL == null) {
             throw new SSOAgentException("\'" +
                     SSOAgentConstants.SSOAgentConfig.SAML2_SSO_URL + "\' not configured");
-        }
-
-        if (isOpenIdLoginEnabled && openIdURL == null) {
-            throw new SSOAgentException("\'" +
-                    SSOAgentConstants.SSOAgentConfig.OPENID_URL + "\' not configured");
-        }
-
-        if (!isSAML2SSOLoginEnabled && isOAuth2SAML2GrantEnabled) {
-            throw new SSOAgentException(
-                    "SAML2 SSO Login is disabled. Cannot use SAML2 Bearer Grant type for OAuth2");
-        }
-
-        if (isSAML2SSOLoginEnabled && isOAuth2SAML2GrantEnabled && oauth2SAML2GrantURL == null) {
-            throw new SSOAgentException("\'" +
-                    SSOAgentConstants.SSOAgentConfig.OAUTH2_SAML2_GRANT_URL + "\' not configured");
         }
 
         if (isSAML2SSOLoginEnabled && saml2.spEntityId == null) {
@@ -623,35 +494,6 @@ public class SSOAgentConfig {
                 saml2.ssoAgentX509Credential.getPrivateKey() == null) {
             throw new SSOAgentException("Private key of SP not configured");
         }
-
-        if (isOpenIdLoginEnabled && openId.providerURL == null) {
-            throw new SSOAgentException("\'" +
-                    SSOAgentConstants.SSOAgentConfig.OpenID.PROVIDER_URL + "\' not configured");
-        }
-
-        if (isOpenIdLoginEnabled && openId.returnToURL == null) {
-            throw new SSOAgentException("\'" +
-                    SSOAgentConstants.SSOAgentConfig.OpenID.RETURN_TO_URL + "\' not configured");
-        }
-
-        if (isOpenIdLoginEnabled && openId.attributesRequestor == null) {
-            LOGGER.log(Level.FINE, "\'" +
-                    SSOAgentConstants.SSOAgentConfig.OpenID.PROVIDER_URL +
-                    "\' not configured. " + "No attributes of the Subject will be fetched");
-        }
-
-        if (isSAML2SSOLoginEnabled && isOAuth2SAML2GrantEnabled && oauth2.tokenURL == null) {
-            throw new SSOAgentException("OAuth2 Token endpoint not configured");
-        }
-
-        if (isSAML2SSOLoginEnabled && isOAuth2SAML2GrantEnabled && oauth2.clientId == null) {
-            throw new SSOAgentException("OAuth2 Client Id not configured");
-        }
-
-        if (isSAML2SSOLoginEnabled && isOAuth2SAML2GrantEnabled && oauth2.clientSecret == null) {
-            throw new SSOAgentException("OAuth2 Client Secret not configured");
-        }
-
     }
 
     /**
@@ -922,189 +764,6 @@ public class SSOAgentConfig {
 
         public int getTimeStampSkewInSeconds() {
             return timeStampSkewInSeconds;
-        }
-    }
-
-    public class OpenID {
-
-        private String mode = null;
-        private String providerURL = null;
-        private String returnToURL = null;
-        private String claimedId = null;
-        private AttributesRequestor attributesRequestor = null;
-        private boolean isAttributeExchangeEnabled = false;
-        private boolean isDumbModeEnabled = false;
-
-        public String getMode() {
-            return mode;
-        }
-
-        public void setMode(String mode) {
-            this.mode = mode;
-        }
-
-        public String getProviderURL() {
-            return providerURL;
-        }
-
-        public void setProviderURL(String providerURL) {
-            this.providerURL = providerURL;
-        }
-
-        public String getReturnToURL() {
-            return returnToURL;
-        }
-
-        public void setReturnToURL(String returnToURL) {
-            this.returnToURL = returnToURL;
-        }
-
-        public String getClaimedId() {
-            return claimedId;
-        }
-
-        public void setClaimedId(String claimedId) {
-            this.claimedId = claimedId;
-        }
-
-        public AttributesRequestor getAttributesRequestor() {
-            return attributesRequestor;
-        }
-
-        public void setAttributesRequestor(AttributesRequestor attributesRequestor) {
-            this.attributesRequestor = attributesRequestor;
-        }
-
-        public boolean isAttributeExchangeEnabled() {
-            return isAttributeExchangeEnabled;
-        }
-
-        public void setAttributeExchangeEnabled(boolean isAttributeExchangeEnabled) {
-            this.isAttributeExchangeEnabled = isAttributeExchangeEnabled;
-        }
-
-        public boolean isDumbModeEnabled() {
-            return isDumbModeEnabled;
-        }
-
-        public void setDumbModeEnabled(boolean isDumbModeEnabled) {
-            this.isDumbModeEnabled = isDumbModeEnabled;
-        }
-    }
-
-    public class OIDC {
-
-        private String consumerKey = StringUtils.EMPTY;
-        private String consumerSecret = StringUtils.EMPTY;
-        private String authzEndpoint = StringUtils.EMPTY;
-        private String authzGrantType = StringUtils.EMPTY;
-        private String callBackUrl = StringUtils.EMPTY;
-        private String OIDCLogoutEndpoint = StringUtils.EMPTY;
-        private String sessionIFrameEndpoint = StringUtils.EMPTY;
-
-        public String getScope() {
-            return scope;
-        }
-
-        public void setScope(String scope) {
-            this.scope = scope;
-        }
-
-        private String scope = StringUtils.EMPTY;
-        private String postLogoutRedirectUri = StringUtils.EMPTY;
-
-        public String getConsumerKey() {
-            return consumerKey;
-        }
-
-        public void setConsumerKey(String consumerKey) {
-            this.consumerKey = consumerKey;
-        }
-
-        public String getAuthzEndpoint() {
-            return authzEndpoint;
-        }
-
-        public void setAuthzEndpoint(String authzEndpoint) {
-            this.authzEndpoint = authzEndpoint;
-        }
-        public String getAuthzGrantType() {
-            return authzGrantType;
-        }
-
-        public void setAuthzGrantType(String authzGrantType) {
-            this.authzGrantType = authzGrantType;
-        }
-
-        public String getCallBackUrl() {
-            return callBackUrl;
-        }
-
-        public void setCallBackUrl(String callBackUrl) {
-            this.callBackUrl = callBackUrl;
-        }
-
-        public String getOIDCLogoutEndpoint() {
-            return OIDCLogoutEndpoint;
-        }
-
-        public void setOIDCLogoutEndpoint(String OIDCLogoutEndpoint) {
-            this.OIDCLogoutEndpoint = OIDCLogoutEndpoint;
-        }
-
-        public String getSessionIFrameEndpoint() {
-            return sessionIFrameEndpoint;
-        }
-
-        public void setSessionIFrameEndpoint(String sessionIFrameEndpoint) {
-            this.sessionIFrameEndpoint = sessionIFrameEndpoint;
-        }
-
-        public String getConsumerSecret() {
-            return consumerSecret;
-        }
-
-        public void setConsumerSecret(String consumerSecret) {
-            this.consumerSecret = consumerSecret;
-        }
-
-        public String getPostLogoutRedirectUri() {
-            return postLogoutRedirectUri;
-        }
-
-        public void setPostLogoutRedirectUri(String postLogoutRedirectUri) {
-            this.postLogoutRedirectUri = postLogoutRedirectUri;
-        }
-    }
-
-    public class OAuth2 {
-
-        private String tokenURL = null;
-        private String clientId = null;
-        private String clientSecret = null;
-
-        public String getClientSecret() {
-            return clientSecret;
-        }
-
-        public void setClientSecret(String clientSecret) {
-            this.clientSecret = clientSecret;
-        }
-
-        public String getTokenURL() {
-            return tokenURL;
-        }
-
-        public void setTokenURL(String tokenURL) {
-            this.tokenURL = tokenURL;
-        }
-
-        public String getClientId() {
-            return clientId;
-        }
-
-        public void setClientId(String clientId) {
-            this.clientId = clientId;
         }
     }
 }

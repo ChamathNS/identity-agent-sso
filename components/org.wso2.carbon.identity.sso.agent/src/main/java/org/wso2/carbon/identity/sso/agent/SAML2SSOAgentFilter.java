@@ -24,8 +24,6 @@ import org.opensaml.saml.saml2.core.LogoutResponse;
 import org.wso2.carbon.identity.sso.agent.bean.SSOAgentConfig;
 import org.wso2.carbon.identity.sso.agent.exception.InvalidSessionException;
 import org.wso2.carbon.identity.sso.agent.exception.SSOAgentException;
-import org.wso2.carbon.identity.sso.agent.oauth2.SAML2GrantManager;
-import org.wso2.carbon.identity.sso.agent.openid.OpenIDManager;
 import org.wso2.carbon.identity.sso.agent.saml.SAML2SSOManager;
 import org.wso2.carbon.identity.sso.agent.util.SSOAgentConstants;
 import org.wso2.carbon.identity.sso.agent.util.SSOAgentFilterUtils;
@@ -82,7 +80,6 @@ public class SAML2SSOAgentFilter implements Filter {
             }
 
             SAML2SSOManager samlSSOManager;
-            SAML2GrantManager saml2GrantManager;
 
             if (resolver.isSLORequest()) {
 
@@ -108,15 +105,6 @@ public class SAML2SSOAgentFilter implements Filter {
                 } catch (SSOAgentException e) {
                     handleException(request, e);
                 }
-            } else if (resolver.isOpenIdLoginResponse()) {
-
-                OpenIDManager openIdManager = new OpenIDManager(ssoAgentConfig);
-                try {
-                    openIdManager.processOpenIDLoginResponse(request, response);
-                } catch (SSOAgentException e) {
-                    handleException(request, e);
-                }
-
             } else if (resolver.isSLOURL()) {
 
                 samlSSOManager = new SAML2SSOManager(ssoAgentConfig);
@@ -158,11 +146,6 @@ public class SAML2SSOAgentFilter implements Filter {
                 ssoAgentConfig.getSAML2().setPassiveAuthn(isPassiveAuth);
                 response.sendRedirect(redirectUrl);
                 return;
-
-            } else if (resolver.isSAML2OAuth2GrantRequest()) {
-
-                saml2GrantManager = new SAML2GrantManager(ssoAgentConfig);
-                saml2GrantManager.getAccessToken(request, response);
 
             }
 
