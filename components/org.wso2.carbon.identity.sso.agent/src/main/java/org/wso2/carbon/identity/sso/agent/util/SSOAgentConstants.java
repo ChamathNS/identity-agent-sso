@@ -44,30 +44,12 @@ public class SSOAgentConstants {
         public static final String SUCCESS_CODE = "urn:oasis:names:tc:SAML:2.0:status:Success";
     }
 
-    public static class OpenID {
-
-        public static final String OPENID_MODE = "openid.mode";
-        private OpenID() {}
-
-    }
-
-    public static class OAuth2 {
-        public static final String SAML2_BEARER_GRANT_TYPE =
-                "urn:ietf:params:oauth:grant-type:saml2-bearer";
-
-        private OAuth2() {}
-    }
-
     private SSOAgentConstants() {}
 
     public static class SSOAgentConfig {
 
         public static final String ENABLE_SAML2_SSO_LOGIN = "EnableSAML2SSOLogin";
-        public static final String ENABLE_OPENID_SSO_LOGIN = "EnableOpenIDLogin";
-        public static final String ENABLE_OAUTH2_SAML2_OAUTH2_GRANT = "EnableOAuth2SAML2Grant";
         public static final String SAML2_SSO_URL = "SAML2SSOURL";
-        public static final String OPENID_URL = "OpenIdURL";
-        public static final String OAUTH2_SAML2_GRANT_URL = "OAuth2SAML2GrantURL";
         public static final String SKIP_URIS = "SkipURIs";
         public static final String QUERY_PARAMS = "QueryParams";
         public static final String PASSWORD_FILEPATH = "/conf/password_temp.txt";
@@ -113,42 +95,6 @@ public class SSOAgentConstants {
 
             private SAML2() {}
         }
-
-        public static class OpenID {
-
-            public static final String PROVIDER_URL = "OpenId.ProviderURL";
-            public static final String RETURN_TO_URL = "OpenId.ReturnToURL";
-            public static final String CLAIMED_ID = "OpenId.ClaimedId";
-            public static final String ENABLE_ATTRIBUTE_EXCHANGE = "OpenId.EnableAttributeExchange";
-            public static final String ENABLE_DUMB_MODE = "OpenId.EnableDumbMode";
-
-            private OpenID() {}
-        }
-
-        public static class OIDC {
-
-            public static final String CONSUMER_KEY = "consumerKey";
-            public static final String CONSUMER_SECRET = "consumerSecret";
-            public static final String CALL_BACK_URL = "callBackUrl";
-            public static final String OAUTH2_GRANT_TYPE = "grantType";
-            public static final String OAUTH2_AUTHZ_ENDPOINT = "authorizeEndpoint";
-            public static final String OIDC_LOGOUT_ENDPOINT = "logoutEndpoint";
-            public static final String OIDC_SESSION_IFRAME_ENDPOINT = "sessionIFrameEndpoint";
-            public static final String SCOPE = "scope";
-            public static final String POST_LOGOUT_REDIRECT_RUI = "postLogoutRedirectUri";
-
-            private OIDC() {}
-        }
-
-        public static class OAuth2 {
-
-            public static final String CLIENT_ID = "OAuth2.ClientId";
-            public static final String CLIENT_SECRET = "OAuth2.ClientSecret";
-            public static final String TOKEN_URL = "OAuth2.TokenURL";
-
-            private OAuth2() {}
-        }
-
     }
 
 }

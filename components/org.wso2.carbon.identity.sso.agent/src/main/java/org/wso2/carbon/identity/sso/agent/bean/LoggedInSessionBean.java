@@ -22,7 +22,6 @@ package org.wso2.carbon.identity.sso.agent.bean;
 
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
-import org.openid4java.discovery.DiscoveryInformation;
 import org.opensaml.saml.saml2.core.Assertion;
 import org.opensaml.saml.saml2.core.Response;
 import org.wso2.carbon.identity.sso.agent.exception.SSOAgentException;
@@ -31,14 +30,11 @@ import org.wso2.carbon.identity.sso.agent.util.SSOAgentUtils;
 import javax.xml.bind.annotation.XmlAttribute;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.List;
 import java.util.Map;
 
 public class LoggedInSessionBean implements Serializable {
 
     private static final long serialVersionUID = 7762835859870143767L;
-
-    private OpenID openId;
 
     private SAML2SSO saml2SSO;
 
@@ -48,14 +44,6 @@ public class LoggedInSessionBean implements Serializable {
 
     public void setSAML2SSO(SAML2SSO saml2SSO) {
         this.saml2SSO = saml2SSO;
-    }
-
-    public OpenID getOpenId() {
-        return openId;
-    }
-
-    public void setOpenId(OpenID openId) {
-        this.openId = openId;
     }
 
     public static class AccessTokenResponseBean implements Serializable{
@@ -117,39 +105,6 @@ public class LoggedInSessionBean implements Serializable {
         public AccessTokenResponseBean deSerialize(String accessTokenResponseBeanString) {
             Gson gson = new Gson();
             return gson.fromJson(accessTokenResponseBeanString, AccessTokenResponseBean.class);
-        }
-    }
-
-    public class OpenID implements Serializable {
-
-        private DiscoveryInformation discoveryInformation;
-
-        private String claimedId;
-
-        private Map<String, List<String>> subjectAttributes;
-
-        public DiscoveryInformation getDiscoveryInformation() {
-            return discoveryInformation;
-        }
-
-        public void setDiscoveryInformation(DiscoveryInformation discoveryInformation) {
-            this.discoveryInformation = discoveryInformation;
-        }
-
-        public String getClaimedId() {
-            return claimedId;
-        }
-
-        public void setClaimedId(String claimedId) {
-            this.claimedId = claimedId;
-        }
-
-        public Map<String, List<String>> getSubjectAttributes() {
-            return subjectAttributes;
-        }
-
-        public void setSubjectAttributes(Map<String, List<String>> subjectAttributes) {
-            this.subjectAttributes = subjectAttributes;
         }
     }
 

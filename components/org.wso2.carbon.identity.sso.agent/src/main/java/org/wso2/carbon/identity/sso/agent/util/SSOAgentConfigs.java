@@ -20,7 +20,6 @@
 
 package org.wso2.carbon.identity.sso.agent.util;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.sso.agent.bean.SSOAgentConfig;
@@ -42,14 +41,9 @@ public class SSOAgentConfigs {
 
 
     private static Boolean samlSSOLoginEnabled;
-    private static Boolean openidLoginEnabled;
-    private static Boolean saml2GrantEnabled;
     private static String sessionBeanName;
     private static String loginUrl;
     private static String samlSSOUrl;
-    private static String openIdUrl;
-    private static String saml2GrantUrl;
-
     private static String issuerId;
     private static String consumerUrl;
     private static String idPUrl;
@@ -69,17 +63,8 @@ public class SSOAgentConfigs {
     private static String idPCertAlias;
     private static String privateKeyAlias;
     private static String privateKeyPassword;
-    private static String tokenEndpoint;
-    private static String clientId;
-    private static String clientSecret;
-
-    private static String openIdProviderUrl;
-    private static String returnTo;
-    private static String claimedIdParameterName;
-    private static String attributesRequestorImplClass;
 
     private static String requestQueryParameters;
-
     private static String addExtension;
 
     private SSOAgentConfigs() {
@@ -135,20 +120,6 @@ public class SSOAgentConfigs {
             samlSSOLoginEnabled = true;
         }
 
-        if (properties.getProperty("EnableOpenIDLogin") != null) {
-            openidLoginEnabled = Boolean.parseBoolean(properties.getProperty("EnableOpenIDLogin"));
-        } else {
-            LOGGER.info("\'EnableOpenIDLogin\' not configured. Defaulting to \'true\'");
-            openidLoginEnabled = true;
-        }
-
-        if (properties.getProperty("EnableSAML2Grant") != null) {
-            saml2GrantEnabled = Boolean.parseBoolean(properties.getProperty("EnableSAML2Grant"));
-        } else {
-            LOGGER.info("\'EnableSAML2Grant\' not configured. Defaulting to \'true\'");
-            saml2GrantEnabled = true;
-        }
-
         if (properties.getProperty("SSOAgentSessionBeanName") != null) {
             sessionBeanName = properties.getProperty("SSOAgentSessionBeanName");
         } else {
@@ -158,9 +129,6 @@ public class SSOAgentConfigs {
 
         loginUrl = properties.getProperty("LoginUrl");
         samlSSOUrl = properties.getProperty("SAMLSSOUrl");
-        saml2GrantUrl = properties.getProperty("SAML2GrantUrl");
-        openIdUrl = properties.getProperty("OpenIDUrl");
-
         issuerId = properties.getProperty("SAML.IssuerID");
         consumerUrl = properties.getProperty("SAML.ConsumerUrl");
         idPUrl = properties.getProperty("SAML.IdPUrl");
@@ -224,15 +192,6 @@ public class SSOAgentConfigs {
         privateKeyAlias = properties.getProperty("SAML.PrivateKeyAlias");
         privateKeyPassword = properties.getProperty("SAML.PrivateKeyPassword");
 
-        tokenEndpoint = properties.getProperty("SAML.OAuth2TokenEndpoint");
-        clientId = properties.getProperty("SAML.OAuth2ClientID");
-        clientSecret = properties.getProperty("SAML.OAuth2ClientSecret");
-
-        openIdProviderUrl = properties.getProperty("OpenID.OpenIdProviderUrl");
-        returnTo = properties.getProperty("OpenID.ReturnToUrl");
-        claimedIdParameterName = properties.getProperty("OpenID.ClaimedIDParameterName");
-        attributesRequestorImplClass = properties.getProperty("OpenID.AttributesRequestorImplClass");
-
         requestQueryParameters = properties.getProperty("SAML.Request.Query.Param");
 
         addExtension = properties.getProperty("SAML.Request.Add.Extension");
@@ -240,17 +199,6 @@ public class SSOAgentConfigs {
     }
 
     public static void initCheck() throws SSOAgentException {
-
-        if ((SSOAgentConfigs.isSAMLSSOLoginEnabled() || SSOAgentConfigs.isOpenIDLoginEnabled()) &&
-                SSOAgentConfigs.getLoginUrl() == null) {
-
-            throw new SSOAgentException("\'LoginUrl\' not configured");
-        }
-
-        if (SSOAgentConfigs.isSAMLSSOLoginEnabled() && SSOAgentConfigs.isSAML2GrantEnabled() &&
-                SSOAgentConfigs.getSAML2GrantUrl() == null) {
-            throw new SSOAgentException("\'SAML2GrantUrl\' not configured");
-        }
 
         if (SSOAgentConfigs.isSAMLSSOLoginEnabled() && SSOAgentConfigs.getSAMLSSOUrl() == null) {
             throw new SSOAgentException("\'SAMLSSOUrl\' not configured");
@@ -318,50 +266,6 @@ public class SSOAgentConfigs {
             LOGGER.info("SAML.PrivateKeyPassword not configured. Defaulting to \'wso2carbon\'");
             SSOAgentConfigs.setPrivateKeyPassword("wso2carbon");
         }
-
-        if (!SSOAgentConfigs.isSAMLSSOLoginEnabled() && SSOAgentConfigs.isSAML2GrantEnabled()) {
-            LOGGER.info("SAMLSSOLogin disabled. Therefore disabling SAML2Grant as well");
-            SSOAgentConfigs.setSAML2GrantEnabled(false);
-        }
-
-        if (SSOAgentConfigs.isSAMLSSOLoginEnabled() && SSOAgentConfigs.isSAML2GrantEnabled() &&
-                SSOAgentConfigs.getTokenEndpoint() == null) {
-            LOGGER.info("SAML.OAuth2TokenEndpoint not configured. Defaulting to \'https://localhost:9443/oauth2/token\'");
-            SSOAgentConfigs.setTokenEndpoint("https://localhost:9443/oauth2/token");
-        }
-
-        if (SSOAgentConfigs.isSAMLSSOLoginEnabled() && SSOAgentConfigs.isSAML2GrantEnabled() &&
-                SSOAgentConfigs.getTokenEndpoint() != null && SSOAgentConfigs.getOAuth2ClientId() == null) {
-            LOGGER.info("SAML.OAuth2ClientID not configured");
-            throw new SSOAgentException("SAML.OAuth2ClientId not configured");
-        }
-
-        if (SSOAgentConfigs.isSAMLSSOLoginEnabled() && SSOAgentConfigs.isSAML2GrantEnabled() &&
-                SSOAgentConfigs.getTokenEndpoint() != null && SSOAgentConfigs.getOAuth2ClientSecret() == null) {
-            throw new SSOAgentException("SAML.OAuth2ClientSecret not configured");
-        }
-
-        if (SSOAgentConfigs.isOpenIDLoginEnabled() && SSOAgentConfigs.getOpenIdUrl() == null) {
-            throw new SSOAgentException("\'OpenIDUrl\' not configured");
-        }
-
-        if (SSOAgentConfigs.isOpenIDLoginEnabled() && SSOAgentConfigs.getOpenIdProviderUrl() == null) {
-            throw new SSOAgentException("\'OpenID.OpenIdProviderUrl\' not configured");
-        }
-
-        if (SSOAgentConfigs.isOpenIDLoginEnabled() && SSOAgentConfigs.getReturnTo() == null) {
-            throw new SSOAgentException("OpenID.ReturnToUrl not configured");
-        }
-
-        if (SSOAgentConfigs.isOpenIDLoginEnabled() && SSOAgentConfigs.getClaimedIdParameterName() == null) {
-            LOGGER.info("OpenID.ClaimIDParameterName not configured. Defaulting to \'claimed_id\'");
-            SSOAgentConfigs.setClaimedIdParameterName("claimed_id");
-        }
-
-        if (SSOAgentConfigs.isOpenIDLoginEnabled() && SSOAgentConfigs.getAttributesRequestorImplClass() == null) {
-            LOGGER.info("OpenID.AttributesRequestorImplClass not configured. No attributes of the subject will be fetched");
-        }
-
     }
 
     public static boolean isSAMLSSOLoginEnabled() {
@@ -370,18 +274,6 @@ public class SSOAgentConfigs {
 
     public static void setSAMLSSOLoginEnabled(Boolean samlSSOLoginEnabled) {
         SSOAgentConfigs.samlSSOLoginEnabled = samlSSOLoginEnabled;
-    }
-
-    public static boolean isOpenIDLoginEnabled() {
-        return openidLoginEnabled;
-    }
-
-    public static boolean isSAML2GrantEnabled() {
-        return saml2GrantEnabled;
-    }
-
-    public static void setSAML2GrantEnabled(Boolean saml2GrantEnabled) {
-        SSOAgentConfigs.saml2GrantEnabled = saml2GrantEnabled;
     }
 
     public static String getSessionBeanName() {
@@ -406,22 +298,6 @@ public class SSOAgentConfigs {
 
     public static void setSAMLSSOUrl(String samlSSOUrl) {
         SSOAgentConfigs.samlSSOUrl = samlSSOUrl;
-    }
-
-    public static String getOpenIdUrl() {
-        return openIdUrl;
-    }
-
-    public static void setOpenIdUrl(String openIdUrl) {
-        SSOAgentConfigs.openIdUrl = openIdUrl;
-    }
-
-    public static String getSAML2GrantUrl() {
-        return saml2GrantUrl;
-    }
-
-    public static void setSAML2GrantUrl(String saml2GrantUrl) {
-        SSOAgentConfigs.saml2GrantUrl = saml2GrantUrl;
     }
 
     public static String getIssuerId() {
@@ -567,66 +443,6 @@ public class SSOAgentConfigs {
 
     public static void setPrivateKeyPassword(String privateKeyPassword) {
         SSOAgentConfigs.privateKeyPassword = privateKeyPassword;
-    }
-
-    public static String getTokenEndpoint() {
-        return tokenEndpoint;
-    }
-
-    public static void setTokenEndpoint(String tokenEndpoint) {
-        SSOAgentConfigs.tokenEndpoint = tokenEndpoint;
-    }
-
-    public static String getOAuth2ClientId() {
-        return clientId;
-    }
-
-    public static void setOAuth2ClientId(String clientSecret) {
-        SSOAgentConfigs.clientSecret = clientSecret;
-    }
-
-    public static String getOAuth2ClientSecret() {
-        return clientSecret;
-    }
-
-    public static void setOAuth2ClientSecret(String clientId) {
-        SSOAgentConfigs.clientId = clientId;
-    }
-
-    public static String getOpenIdProviderUrl() {
-        return openIdProviderUrl;
-    }
-
-    public static void setOpenIdProviderUrl(String openIdProviderUrl) {
-        SSOAgentConfigs.openIdProviderUrl = openIdProviderUrl;
-    }
-
-    public static String getReturnTo() {
-        return returnTo;
-    }
-
-    public static void setReturnTo(String returnTo) {
-        SSOAgentConfigs.returnTo = returnTo;
-    }
-
-    public static String getClaimedIdParameterName() {
-        return claimedIdParameterName;
-    }
-
-    public static void setClaimedIdParameterName(String claimedIdParameterName) {
-        SSOAgentConfigs.claimedIdParameterName = claimedIdParameterName;
-    }
-
-    public static String getAttributesRequestorImplClass() {
-        return attributesRequestorImplClass;
-    }
-
-    public static void setAttributesRequestorImplClass(String attributesRequestorImplClass) {
-        SSOAgentConfigs.attributesRequestorImplClass = attributesRequestorImplClass;
-    }
-
-    public static void setOpenidLoginEnabled(Boolean openidLoginEnabled) {
-        SSOAgentConfigs.openidLoginEnabled = openidLoginEnabled;
     }
 
     public static void setAssertionEncrypted(Boolean assertionEncrypted) {

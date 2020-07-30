@@ -21,16 +21,12 @@
 package org.wso2.carbon.identity.sso.agent.bean;
 
 import com.google.gson.Gson;
-import org.openid4java.discovery.DiscoveryInformation;
 import org.opensaml.saml.saml2.core.Assertion;
 import org.opensaml.saml.saml2.core.Response;
 
-import java.util.List;
 import java.util.Map;
 
 public class SSOAgentSessionBean {
-
-    private OpenIDSessionBean openIDSessionBean;
 
     private SAMLSSOSessionBean samlssoSessionBean;
 
@@ -40,14 +36,6 @@ public class SSOAgentSessionBean {
 
     public void setSAMLSSOSessionBean(SAMLSSOSessionBean samlssoSessionBean) {
         this.samlssoSessionBean = samlssoSessionBean;
-    }
-
-    public OpenIDSessionBean getOpenIDSessionBean() {
-        return openIDSessionBean;
-    }
-
-    public void setOpenIDSessionBean(OpenIDSessionBean openIDSessionBean) {
-        this.openIDSessionBean = openIDSessionBean;
     }
 
     public static class AccessTokenResponseBean {
@@ -96,39 +84,6 @@ public class SSOAgentSessionBean {
        public String toString() {
             Gson gson = new Gson();
             return gson.toJson(this);
-        }
-    }
-
-    public class OpenIDSessionBean {
-
-        private DiscoveryInformation discoveryInformation;
-
-        private String claimedId;
-
-        private Map<String, List<String>> openIdAttributes;
-
-        public DiscoveryInformation getDiscoveryInformation() {
-            return discoveryInformation;
-        }
-
-        public void setDiscoveryInformation(DiscoveryInformation discoveryInformation) {
-            this.discoveryInformation = discoveryInformation;
-        }
-
-        public String getClaimedId() {
-            return claimedId;
-        }
-
-        public void setClaimedId(String claimedId) {
-            this.claimedId = claimedId;
-        }
-
-        public Map<String, List<String>> getOpenIdAttributes() {
-            return openIdAttributes;
-        }
-
-        public void setOpenIdAttributes(Map<String, List<String>> openIdAttributes) {
-            this.openIdAttributes = openIdAttributes;
         }
     }
 
