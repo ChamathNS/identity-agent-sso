@@ -159,6 +159,11 @@
                 <version>${saml.common.util.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.wso2.carbon.identity.agent.sso.java</groupId>
+                <artifactId>org.wso2.carbon.identity.sso.agent</artifactId>
+                <version>${identity.sso.agent.package.export.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>commons-collections.wso2</groupId>
                 <artifactId>commons-collections</artifactId>
                 <version>${commons-collections.version}</version>
@@ -320,6 +325,7 @@
         <module>components/org.wso2.carbon.identity.sso.agent</module>
         <module>features/org.wso2.carbon.identity.sso.agent.server.feature</module>
         <module>components/org.wso2.carbon.identity.sso.encryptor</module>
+        <module>components/org.wso2.carbon.identity.sso.tomcat.server</module>
     </modules>
 
 </project>
