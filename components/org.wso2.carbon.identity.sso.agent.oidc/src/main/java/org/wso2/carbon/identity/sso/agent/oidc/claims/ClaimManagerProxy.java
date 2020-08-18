@@ -77,6 +77,37 @@ public class ClaimManagerProxy {
         localClaimNodes = getLocalClaimNodes();
     }
 
+    // Dedicated method to extract display value from list of claim property nodes
+    private static String getDisplayValueFromNodeList(final NodeList claimPropertyNodes) {
+
+        for (int j = 0; j < claimPropertyNodes.getLength(); j++) {
+            // Extract property value when property name text is "DisplayName"
+            NodeList propertyChildren = claimPropertyNodes.item(j).getChildNodes();
+
+            for (int k = 0; k < propertyChildren.getLength(); k++) {
+                if ("DisplayName".equals(propertyChildren.item(k).getTextContent())) {
+                    // Extract propertyValue
+                    if (k == 0) {
+                        return propertyChildren.item(1).getTextContent();
+                    } else {
+                        return propertyChildren.item(0).getTextContent();
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private static String getAuthHeader(final String username, final String password) {
+
+        final String base64Part =
+                new String(java.util.Base64.getEncoder()
+                        .encode(String.join(":", username, password)
+                                .getBytes()));
+
+        return String.join(" ", "Basic", base64Part);
+    }
+
     public Map<String, String> getOidcClaimDisplayNameMapping(final List<String> oidcClaims) {
 
         final Map<String, String> oidcClaimToLocalUriClaimMapping = new HashMap<>();
@@ -155,27 +186,6 @@ public class ClaimManagerProxy {
         }
 
         return claimDisplayValueMap;
-    }
-
-    // Dedicated method to extract display value from list of claim property nodes
-    private static String getDisplayValueFromNodeList(final NodeList claimPropertyNodes) {
-
-        for (int j = 0; j < claimPropertyNodes.getLength(); j++) {
-            // Extract property value when property name text is "DisplayName"
-            NodeList propertyChildren = claimPropertyNodes.item(j).getChildNodes();
-
-            for (int k = 0; k < propertyChildren.getLength(); k++) {
-                if ("DisplayName".equals(propertyChildren.item(k).getTextContent())) {
-                    // Extract propertyValue
-                    if (k == 0) {
-                        return propertyChildren.item(1).getTextContent();
-                    } else {
-                        return propertyChildren.item(0).getTextContent();
-                    }
-                }
-            }
-        }
-        return null;
     }
 
     private List<Node> getOIDCDialectNodes() {
@@ -281,15 +291,5 @@ public class ClaimManagerProxy {
             logger.log(Level.SEVERE, "Error while retrieving response.", e);
             return "";
         }
-    }
-
-    private static String getAuthHeader(final String username, final String password) {
-
-        final String base64Part =
-                new String(java.util.Base64.getEncoder()
-                        .encode(String.join(":", username, password)
-                                .getBytes()));
-
-        return String.join(" ", "Basic", base64Part);
     }
 }

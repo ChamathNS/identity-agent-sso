@@ -114,7 +114,8 @@ public class CommonUtils {
         }
 
         final OAuthClientRequest.TokenRequestBuilder oAuthTokenRequestBuilder =
-                new OAuthClientRequest.TokenRequestBuilder(properties.getProperty(SSOAgentConstants.OIDC_TOKEN_ENDPOINT));
+                new OAuthClientRequest.TokenRequestBuilder(
+                        properties.getProperty(SSOAgentConstants.OIDC_TOKEN_ENDPOINT));
 
         final OAuthClientRequest accessRequest = oAuthTokenRequestBuilder.setGrantType(GrantType.AUTHORIZATION_CODE)
                 .setClientId(properties.getProperty(SSOAgentConstants.CONSUMER_KEY))

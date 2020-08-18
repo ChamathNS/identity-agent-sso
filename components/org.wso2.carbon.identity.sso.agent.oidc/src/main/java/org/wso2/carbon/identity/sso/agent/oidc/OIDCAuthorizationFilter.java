@@ -63,7 +63,6 @@ public class OIDCAuthorizationFilter implements Filter {
             return;
         }
 
-
         if (session == null || session.getAttribute("authenticated") == null) {
 
             String consumerKey = properties.getProperty(SSOAgentConstants.CONSUMER_KEY);

@@ -46,14 +46,16 @@ public class DispatchClientServlet extends HttpServlet {
         responseHandler(req, resp);
     }
 
-    private void responseHandler(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
+    private void responseHandler(final HttpServletRequest request, final HttpServletResponse response)
+            throws IOException {
         // Create the initial session
         if (request.getSession(false) == null) {
             request.getSession(true);
         }
 
         // Validate callback properties
-        if (request.getParameterMap().isEmpty() || (request.getParameterMap().containsKey("sp") && request.getParameterMap().containsKey("tenantDomain"))) {
+        if (request.getParameterMap().isEmpty() || (request.getParameterMap().containsKey("sp") &&
+                request.getParameterMap().containsKey("tenantDomain"))) {
             CommonUtils.logout(request, response);
             response.sendRedirect("index.html");
             return;

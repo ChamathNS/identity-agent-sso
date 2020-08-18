@@ -34,6 +34,21 @@ public class SSOAgentContextEventListener implements ServletContextListener {
 
     private static Properties properties;
 
+    /**
+     * Get the properties of the sample
+     *
+     * @return Properties
+     */
+    public static Properties getProperties() {
+
+        return properties;
+    }
+
+    public static String getPropertyByKey(final String key) {
+
+        return properties.getProperty(key);
+    }
+
     public void contextInitialized(ServletContextEvent servletContextEvent) {
 
         properties = new Properties();
@@ -67,21 +82,6 @@ public class SSOAgentContextEventListener implements ServletContextListener {
 
     public void contextDestroyed(ServletContextEvent servletContextEvent) {
 
-    }
-
-    /**
-     * Get the properties of the sample
-     *
-     * @return Properties
-     */
-    public static Properties getProperties() {
-
-        return properties;
-    }
-
-    public static String getPropertyByKey(final String key) {
-
-        return properties.getProperty(key);
     }
 
 }

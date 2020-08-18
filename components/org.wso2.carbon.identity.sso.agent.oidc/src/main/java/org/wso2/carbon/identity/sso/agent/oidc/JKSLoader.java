@@ -45,8 +45,8 @@ public class JKSLoader implements ServletContextListener {
             if (StringUtils.isNotBlank(propertyFileName)) {
                 jksInputStream = this.getClass().getClassLoader().getResourceAsStream(propertyFileName);
             } else {
-                    throw new SSOAgentClientException(SSOAgentConstants.JKS_PROPERTY_FILE_PARAMETER_NAME
-                            + " context-param is not specified in the web.xml");
+                throw new SSOAgentClientException(SSOAgentConstants.JKS_PROPERTY_FILE_PARAMETER_NAME
+                        + " context-param is not specified in the web.xml");
             }
 
             if (jksInputStream == null) {
@@ -58,7 +58,8 @@ public class JKSLoader implements ServletContextListener {
             jksProperties.load(jksInputStream);
 
             // Find and set JKS required for IS server communication
-            final URL resource = this.getClass().getClassLoader().getResource(jksProperties.getProperty("keystorename"));
+            final URL resource =
+                    this.getClass().getClassLoader().getResource(jksProperties.getProperty("keystorename"));
 
             if (resource != null) {
                 System.setProperty("javax.net.ssl.trustStore", resource.getPath());

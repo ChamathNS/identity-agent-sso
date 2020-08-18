@@ -25,18 +25,22 @@
         html, body {
             height: 100%;
         }
+
         body {
             flex-direction: column;
             display: flex;
         }
+
         main {
             flex-shrink: 0;
         }
+
         main.center-segment {
             margin: auto;
             display: flex;
             align-items: center;
         }
+
         .element-padding {
             margin: auto;
             padding: 15px;
@@ -49,10 +53,10 @@
         <h1>
             OIDC Sample App Log In Page!
         </h1>
-        <form method="post" action="home.jsp">
+        <form action="home.jsp" method="post">
 
             <div class="element-padding">
-                <input type="submit" value="log in" style="height: 30px; width: 60px">
+                <input style="height: 30px; width: 60px" type="submit" value="log in">
             </div>
         </form>
     </div>
