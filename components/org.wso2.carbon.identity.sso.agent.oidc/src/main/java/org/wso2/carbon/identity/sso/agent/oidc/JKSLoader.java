@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.sso.agent.oidc;
 
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.sso.agent.oidc.exception.ClientAppException;
+import org.wso2.carbon.identity.sso.agent.oidc.exception.SSOAgentClientException;
 import org.wso2.carbon.identity.sso.agent.oidc.util.SSOAgentConstants;
 
 import java.io.IOException;
@@ -45,7 +45,7 @@ public class JKSLoader implements ServletContextListener {
             if (StringUtils.isNotBlank(propertyFileName)) {
                 jksInputStream = this.getClass().getClassLoader().getResourceAsStream(propertyFileName);
             } else {
-                    throw new ClientAppException(SSOAgentConstants.JKS_PROPERTY_FILE_PARAMETER_NAME
+                    throw new SSOAgentClientException(SSOAgentConstants.JKS_PROPERTY_FILE_PARAMETER_NAME
                             + " context-param is not specified in the web.xml");
             }
 
@@ -65,7 +65,7 @@ public class JKSLoader implements ServletContextListener {
                 System.setProperty("javax.net.ssl.trustStorePassword", jksProperties.getProperty("keystorepassword"));
             }
 
-        } catch (IOException | ClientAppException e) {
+        } catch (IOException | SSOAgentClientException e) {
             e.printStackTrace();
             return;
         }

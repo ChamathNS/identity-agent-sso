@@ -18,15 +18,19 @@
 
 package org.wso2.carbon.identity.sso.agent.oidc.exception;
 
-public class ClientAppException extends Exception {
+/**
+ * This class is used to denote the server exceptions thrown from the OIDC SSO agent module.
+ */
+public class SSOAgentServerException extends SSOAgentException {
 
-    public ClientAppException(String message) {
+    public SSOAgentServerException(final String message) {
 
         super(message);
     }
 
-    public ClientAppException(String message, Throwable cause) {
+    public SSOAgentServerException(final String message, final Throwable ex) {
 
-        super(message, cause);
+        super(message, ex);
     }
+
 }

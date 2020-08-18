@@ -29,8 +29,8 @@ import org.apache.oltu.oauth2.common.message.types.GrantType;
 import org.json.JSONObject;
 import org.wso2.carbon.identity.sso.agent.oidc.SampleContextEventListener;
 import org.wso2.carbon.identity.sso.agent.oidc.TokenData;
-import org.wso2.carbon.identity.sso.agent.oidc.exception.ClientAppException;
-import org.wso2.carbon.identity.sso.agent.oidc.exception.SampleAppServerException;
+import org.wso2.carbon.identity.sso.agent.oidc.exception.SSOAgentClientException;
+import org.wso2.carbon.identity.sso.agent.oidc.exception.SSOAgentServerException;
 
 import java.io.IOException;
 import java.net.URL;
@@ -92,7 +92,7 @@ public class CommonUtils {
     }
 
     public static void getToken(final HttpServletRequest request, final HttpServletResponse response)
-            throws OAuthProblemException, OAuthSystemException, SampleAppServerException {
+            throws OAuthProblemException, OAuthSystemException, SSOAgentServerException {
 
         final Optional<Cookie> appIdCookie = getAppIdCookie(request);
         final HttpSession session = request.getSession(false);
@@ -111,7 +111,7 @@ public class CommonUtils {
         final String authzCode = request.getParameter("code");
 
         if (authzCode == null) {
-            throw new SampleAppServerException("Authorization code not present in callback");
+            throw new SSOAgentServerException("Authorization code not present in callback");
         }
 
         final OAuthClientRequest.TokenRequestBuilder oAuthTokenRequestBuilder =
@@ -185,13 +185,13 @@ public class CommonUtils {
         session.setAttribute("idToken", storedTokenData.getIdToken());
     }
 
-    private static HttpsURLConnection getHttpsURLConnection(final String url) throws ClientAppException {
+    private static HttpsURLConnection getHttpsURLConnection(final String url) throws SSOAgentClientException {
 
         try {
             final URL requestUrl = new URL(url);
             return (HttpsURLConnection) requestUrl.openConnection();
         } catch (IOException e) {
-            throw new ClientAppException("Error while creating connection to: " + url, e);
+            throw new SSOAgentClientException("Error while creating connection to: " + url, e);
         }
     }
 
