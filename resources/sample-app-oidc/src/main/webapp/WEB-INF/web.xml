@@ -23,16 +23,16 @@
          xmlns="http://java.sun.com/xml/ns/javaee"
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
 
-    <display-name>OIDCSampleApp</display-name>
+    <display-name>oidc-sample-app</display-name>
 
     <servlet>
         <servlet-name>OAuth2ClientServlet</servlet-name>
-        <servlet-class>com.sample.DispatchClientServlet</servlet-class>
+        <servlet-class>org.wso2.carbon.identity.sso.agent.oidc.DispatchClientServlet</servlet-class>
         <load-on-startup>0</load-on-startup>
     </servlet>
     <servlet>
         <servlet-name>BackendServiceServlet</servlet-name>
-        <servlet-class>com.sample.MetadataServlet</servlet-class>
+        <servlet-class>org.wso2.carbon.identity.sso.agent.oidc.MetadataServlet</servlet-class>
         <load-on-startup>0</load-on-startup>
     </servlet>
 
@@ -49,7 +49,7 @@
 
     <filter>
         <filter-name>OIDCSampleFilter</filter-name>
-        <filter-class>com.sample.OIDCSampleFilter</filter-class>
+        <filter-class>org.wso2.carbon.identity.sso.agent.oidc.OIDCSampleFilter</filter-class>
     </filter>
     <filter-mapping>
         <filter-name>OIDCSampleFilter</filter-name>
@@ -57,11 +57,18 @@
     </filter-mapping>
 
     <listener>
-        <listener-class>com.sample.SampleContextEventListener</listener-class>
+        <listener-class>org.wso2.carbon.identity.sso.agent.oidc.SampleContextEventListener</listener-class>
     </listener>
+    <context-param>
+        <param-name>app-property-file</param-name>
+        <param-value>oidc-sample-app.properties</param-value>
+    </context-param>
 
     <listener>
-        <listener-class>com.sample.JKSLoader</listener-class>
+        <listener-class>org.wso2.carbon.identity.sso.agent.oidc.JKSLoader</listener-class>
     </listener>
-
+    <context-param>
+        <param-name>jks-property-file</param-name>
+        <param-value>jks.properties</param-value>
+    </context-param>
 </web-app>

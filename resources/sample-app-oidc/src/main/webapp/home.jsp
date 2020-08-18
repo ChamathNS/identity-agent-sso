@@ -20,9 +20,9 @@
 
 <%@page import="com.nimbusds.jwt.ReadOnlyJWTClaimsSet" %>
 <%@page import="com.nimbusds.jwt.SignedJWT" %>
-<%@page import="com.sample.OAuth2Constants" %>
-<%@page import="com.sample.SampleContextEventListener" %>
-<%@page import="com.sample.claims.ClaimManagerProxy" %>
+<%@page import="org.wso2.carbon.identity.sso.agent.oidc.OAuth2Constants" %>
+<%@page import="org.wso2.carbon.identity.sso.agent.oidc.SampleContextEventListener" %>
+<%@page import="org.wso2.carbon.identity.sso.agent.oidc.claims.ClaimManagerProxy" %>
 <%@page import="org.json.JSONObject" %>
 <%@page import="java.util.ArrayList" %>
 <%@page import="java.util.HashMap" %>

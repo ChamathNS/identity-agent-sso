@@ -18,11 +18,15 @@
 
 package org.wso2.carbon.identity.sso.agent.oidc;
 
+import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.identity.sso.agent.oidc.exception.ClientAppException;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Properties;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
@@ -30,28 +34,38 @@ public class JKSLoader implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent servletContextEvent) {
+
         // First find jks properties
-        final InputStream jksInputStream = this.getClass().getClassLoader().getResourceAsStream("jks.properties");
-
-        if (jksInputStream == null) {
-            return;
-        }
-
-        // Load properties
-        final Properties jksProperties = new Properties();
-
         try {
+            ServletContext servletContext = servletContextEvent.getServletContext();
+            String propertyFileName = servletContext.getInitParameter(OAuth2Constants.JKS_PROPERTY_FILE_PARAMETER_NAME);
+            InputStream jksInputStream;
+            if (StringUtils.isNotBlank(propertyFileName)) {
+                jksInputStream = this.getClass().getClassLoader().getResourceAsStream(propertyFileName);
+            } else {
+                    throw new ClientAppException(OAuth2Constants.JKS_PROPERTY_FILE_PARAMETER_NAME
+                            + " context-param is not specified in the web.xml");
+            }
+
+            if (jksInputStream == null) {
+                return;
+            }
+
+            // Load properties
+            final Properties jksProperties = new Properties();
             jksProperties.load(jksInputStream);
-        } catch (IOException e) {
+
+            // Find and set JKS required for IS server communication
+            final URL resource = this.getClass().getClassLoader().getResource(jksProperties.getProperty("keystorename"));
+
+            if (resource != null) {
+                System.setProperty("javax.net.ssl.trustStore", resource.getPath());
+                System.setProperty("javax.net.ssl.trustStorePassword", jksProperties.getProperty("keystorepassword"));
+            }
+
+        } catch (IOException | ClientAppException e) {
+            e.printStackTrace();
             return;
-        }
-
-        // Find and set JKS required for IS server communication
-        final URL resource = this.getClass().getClassLoader().getResource(jksProperties.getProperty("keystorename"));
-
-        if (resource != null) {
-            System.setProperty("javax.net.ssl.trustStore", resource.getPath());
-            System.setProperty("javax.net.ssl.trustStorePassword", jksProperties.getProperty("keystorepassword"));
         }
     }
 

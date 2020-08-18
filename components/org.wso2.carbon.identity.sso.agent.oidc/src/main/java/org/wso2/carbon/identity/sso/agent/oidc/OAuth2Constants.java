@@ -41,4 +41,8 @@ public class OAuth2Constants {
     // request headers
     public static final String REFERER = "referer";
 
+    public static final String APP_PROPERTY_FILE_PARAMETER_NAME = "app-property-file";
+    public static final String JKS_PROPERTY_FILE_PARAMETER_NAME = "jks-property-file";
+
+
 }

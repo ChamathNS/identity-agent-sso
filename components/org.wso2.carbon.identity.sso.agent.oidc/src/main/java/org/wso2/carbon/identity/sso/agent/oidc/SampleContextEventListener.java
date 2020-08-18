@@ -18,11 +18,14 @@
 
 package org.wso2.carbon.identity.sso.agent.oidc;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.sso.agent.oidc.claims.ClaimManagerProxy;
+import org.wso2.carbon.identity.sso.agent.oidc.exception.ClientAppException;
 
 import java.io.IOException;
 import java.util.Properties;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
@@ -33,10 +36,20 @@ public class SampleContextEventListener implements ServletContextListener {
     public void contextInitialized(ServletContextEvent servletContextEvent) {
 
         properties = new Properties();
+
         try {
-            properties.load(servletContextEvent.getServletContext().
-                    getResourceAsStream("/WEB-INF/classes/OIDCSampleApp.properties"));
-        } catch (IOException e) {
+            ServletContext servletContext = servletContextEvent.getServletContext();
+            String propertyFileName = servletContext.getInitParameter(OAuth2Constants.APP_PROPERTY_FILE_PARAMETER_NAME);
+
+            if (StringUtils.isNotBlank(propertyFileName)) {
+                properties.load(servletContextEvent.getServletContext().
+                        getResourceAsStream("/WEB-INF/classes/" + propertyFileName));
+            } else {
+                throw new ClientAppException(OAuth2Constants.APP_PROPERTY_FILE_PARAMETER_NAME
+                        + " context-param is not specified in the web.xml");
+            }
+
+        } catch (IOException | ClientAppException e) {
             e.printStackTrace();
         }
 
