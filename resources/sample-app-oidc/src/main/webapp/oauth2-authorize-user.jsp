@@ -1,6 +1,6 @@
 <%@ page import="org.apache.oltu.oauth2.client.request.OAuthClientRequest" %>
 <%@ page import="org.apache.oltu.oauth2.common.exception.OAuthSystemException" %>
-<%@ page import="org.wso2.carbon.identity.sso.agent.oidc.SSOAgentConstants" %>
+<%@ page import="org.wso2.carbon.identity.sso.agent.oidc.util.SSOAgentConstants" %>
 <%@ page import="org.wso2.carbon.identity.sso.agent.oidc.SampleContextEventListener" %>
 <%@ page import="java.util.Properties" %>
 <%@ page contentType="text/html;charset=UTF-8" %>

@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.sso.agent.oidc;
 
 import org.json.JSONObject;
+import org.wso2.carbon.identity.sso.agent.oidc.util.CommonUtils;
 
 import java.io.IOException;
 import java.io.PrintWriter;

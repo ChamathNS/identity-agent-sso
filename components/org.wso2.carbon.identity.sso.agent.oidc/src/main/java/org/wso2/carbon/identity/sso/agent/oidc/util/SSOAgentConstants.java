@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.sso.agent.oidc;
+package org.wso2.carbon.identity.sso.agent.oidc.util;
 
 public class SSOAgentConstants {
 

@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.sso.agent.oidc;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.sso.agent.oidc.claims.ClaimManagerProxy;
 import org.wso2.carbon.identity.sso.agent.oidc.exception.ClientAppException;
+import org.wso2.carbon.identity.sso.agent.oidc.util.SSOAgentConstants;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -57,7 +58,7 @@ public class SampleContextEventListener implements ServletContextListener {
         // Obtain a claim manager instance for this application and set it to servlet context
         ClaimManagerProxy claimManagerProxy =
                 new ClaimManagerProxy(
-                        properties.getProperty("claimManagementEndpoint"),
+                        properties.getProperty(SSOAgentConstants.OIDC_CLAIM_MGT_ENDPOINT),
                         properties.getProperty("adminUsername"),
                         properties.getProperty("adminPassword"));
 

@@ -20,13 +20,12 @@
 
 <%@page import="com.nimbusds.jwt.ReadOnlyJWTClaimsSet" %>
 <%@page import="com.nimbusds.jwt.SignedJWT" %>
-<%@page import="org.wso2.carbon.identity.sso.agent.oidc.SSOAgentConstants" %>
+<%@page import="org.wso2.carbon.identity.sso.agent.oidc.util.SSOAgentConstants" %>
 <%@page import="org.wso2.carbon.identity.sso.agent.oidc.SampleContextEventListener" %>
 <%@page import="org.wso2.carbon.identity.sso.agent.oidc.claims.ClaimManagerProxy" %>
 <%@page import="org.json.JSONObject" %>
 <%@page import="java.util.ArrayList" %>
 <%@page import="java.util.HashMap" %>
-<%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.Properties" %>
 

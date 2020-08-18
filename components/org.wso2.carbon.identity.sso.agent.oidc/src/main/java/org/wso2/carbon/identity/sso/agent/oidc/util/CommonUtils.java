@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.sso.agent.oidc;
+package org.wso2.carbon.identity.sso.agent.oidc.util;
 
 
 import org.apache.oltu.oauth2.client.OAuthClient;
@@ -27,6 +27,8 @@ import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.types.GrantType;
 import org.json.JSONObject;
+import org.wso2.carbon.identity.sso.agent.oidc.SampleContextEventListener;
+import org.wso2.carbon.identity.sso.agent.oidc.TokenData;
 import org.wso2.carbon.identity.sso.agent.oidc.exception.ClientAppException;
 import org.wso2.carbon.identity.sso.agent.oidc.exception.SampleAppServerException;
 
@@ -113,12 +115,12 @@ public class CommonUtils {
         }
 
         final OAuthClientRequest.TokenRequestBuilder oAuthTokenRequestBuilder =
-                new OAuthClientRequest.TokenRequestBuilder(properties.getProperty("tokenEndpoint"));
+                new OAuthClientRequest.TokenRequestBuilder(properties.getProperty(SSOAgentConstants.OIDC_TOKEN_ENDPOINT));
 
         final OAuthClientRequest accessRequest = oAuthTokenRequestBuilder.setGrantType(GrantType.AUTHORIZATION_CODE)
-                .setClientId(properties.getProperty("consumerKey"))
-                .setClientSecret(properties.getProperty("consumerSecret"))
-                .setRedirectURI(properties.getProperty("callBackUrl"))
+                .setClientId(properties.getProperty(SSOAgentConstants.CONSUMER_KEY))
+                .setClientSecret(properties.getProperty(SSOAgentConstants.CONSUMER_SECRET))
+                .setRedirectURI(properties.getProperty(SSOAgentConstants.CALL_BACK_URL))
                 .setCode(authzCode)
                 .buildBodyMessage();
 

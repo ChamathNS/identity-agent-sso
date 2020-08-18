@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.sso.agent.oidc;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.sso.agent.oidc.exception.ClientAppException;
+import org.wso2.carbon.identity.sso.agent.oidc.util.SSOAgentConstants;
 
 import java.io.IOException;
 import java.io.InputStream;
