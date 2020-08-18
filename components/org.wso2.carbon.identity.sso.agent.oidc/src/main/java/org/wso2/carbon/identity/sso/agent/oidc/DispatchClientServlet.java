@@ -57,7 +57,7 @@ public class DispatchClientServlet extends HttpServlet {
             return;
         }
 
-        final String error = request.getParameter(OAuth2Constants.ERROR);
+        final String error = request.getParameter(SSOAgentConstants.ERROR);
 
         if (StringUtils.isNotBlank(error)) {
             // Error response from IDP
@@ -68,7 +68,7 @@ public class DispatchClientServlet extends HttpServlet {
 
         // Obtain and store session_state against this session
         request.getSession(false)
-                .setAttribute(OAuth2Constants.SESSION_STATE, request.getParameter(OAuth2Constants.SESSION_STATE));
+                .setAttribute(SSOAgentConstants.SESSION_STATE, request.getParameter(SSOAgentConstants.SESSION_STATE));
 
         try {
             // Obtain token response

@@ -38,12 +38,13 @@ public class JKSLoader implements ServletContextListener {
         // First find jks properties
         try {
             ServletContext servletContext = servletContextEvent.getServletContext();
-            String propertyFileName = servletContext.getInitParameter(OAuth2Constants.JKS_PROPERTY_FILE_PARAMETER_NAME);
+            String propertyFileName = servletContext.getInitParameter(
+                    SSOAgentConstants.JKS_PROPERTY_FILE_PARAMETER_NAME);
             InputStream jksInputStream;
             if (StringUtils.isNotBlank(propertyFileName)) {
                 jksInputStream = this.getClass().getClassLoader().getResourceAsStream(propertyFileName);
             } else {
-                    throw new ClientAppException(OAuth2Constants.JKS_PROPERTY_FILE_PARAMETER_NAME
+                    throw new ClientAppException(SSOAgentConstants.JKS_PROPERTY_FILE_PARAMETER_NAME
                             + " context-param is not specified in the web.xml");
             }
 

@@ -20,7 +20,7 @@
 
 <%@page import="com.nimbusds.jwt.ReadOnlyJWTClaimsSet" %>
 <%@page import="com.nimbusds.jwt.SignedJWT" %>
-<%@page import="org.wso2.carbon.identity.sso.agent.oidc.OAuth2Constants" %>
+<%@page import="org.wso2.carbon.identity.sso.agent.oidc.SSOAgentConstants" %>
 <%@page import="org.wso2.carbon.identity.sso.agent.oidc.SampleContextEventListener" %>
 <%@page import="org.wso2.carbon.identity.sso.agent.oidc.claims.ClaimManagerProxy" %>
 <%@page import="org.json.JSONObject" %>
@@ -40,7 +40,7 @@
     }
     
     final Properties properties = SampleContextEventListener.getProperties();
-    final String sessionState = (String) currentSession.getAttribute(OAuth2Constants.SESSION_STATE);
+    final String sessionState = (String) currentSession.getAttribute(SSOAgentConstants.SESSION_STATE);
     
     final JSONObject requestObject = (JSONObject) currentSession.getAttribute("requestObject");
     final JSONObject responseObject = (JSONObject) currentSession.getAttribute("responseObject");
@@ -136,7 +136,7 @@
         </div>
         
         <div class="element-padding">
-            <a href='<%=properties.getProperty("OIDC_LOGOUT_ENDPOINT")%>?post_logout_redirect_uri=<%=properties.getProperty("post_logout_redirect_uri")%>&id_token_hint=<%=idToken%>&session_state=<%=sessionState%>'>Logout</a>
+            <a href='<%=properties.getProperty(SSOAgentConstants.OIDC_LOGOUT_ENDPOINT)%>?post_logout_redirect_uri=<%=properties.getProperty("post_logout_redirect_uri")%>&id_token_hint=<%=idToken%>&session_state=<%=sessionState%>'>Logout</a>
         </div>
     </div>
 </main>

@@ -39,13 +39,14 @@ public class SampleContextEventListener implements ServletContextListener {
 
         try {
             ServletContext servletContext = servletContextEvent.getServletContext();
-            String propertyFileName = servletContext.getInitParameter(OAuth2Constants.APP_PROPERTY_FILE_PARAMETER_NAME);
+            String propertyFileName = servletContext.getInitParameter(
+                    SSOAgentConstants.APP_PROPERTY_FILE_PARAMETER_NAME);
 
             if (StringUtils.isNotBlank(propertyFileName)) {
                 properties.load(servletContextEvent.getServletContext().
                         getResourceAsStream("/WEB-INF/classes/" + propertyFileName));
             } else {
-                throw new ClientAppException(OAuth2Constants.APP_PROPERTY_FILE_PARAMETER_NAME
+                throw new ClientAppException(SSOAgentConstants.APP_PROPERTY_FILE_PARAMETER_NAME
                         + " context-param is not specified in the web.xml");
             }
 
