@@ -64,16 +64,10 @@
             <artifactId>org.wso2.carbon.identity.sso.agent.oidc</artifactId>
             <version>${sso.agent.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.nimbusds</groupId>
-            <artifactId>nimbus-jose-jwt</artifactId>
-            <version>${nimbusds.version}</version>
-        </dependency>
     </dependencies>
 
     <properties>
         <sso.agent.version>${project.version}</sso.agent.version>
-        <nimbusds.version>2.26.1</nimbusds.version>
     </properties>
 
 

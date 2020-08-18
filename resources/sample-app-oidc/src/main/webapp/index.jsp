@@ -59,7 +59,7 @@
         <h1>
             OIDC Sample App Log In Page!
         </h1>
-        <form method="post" action="oauth2-authorize-user.jsp?reset=true">
+        <form method="post" action="home.jsp">
 
             <div class="element-padding">
                 <input type="submit" value="log in" style="height: 30px; width: 60px">
