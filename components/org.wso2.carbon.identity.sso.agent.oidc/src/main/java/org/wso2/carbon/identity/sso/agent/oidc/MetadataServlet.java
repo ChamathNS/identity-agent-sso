@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.sso.agent.oidc;
 
 import org.json.JSONObject;
+import org.wso2.carbon.identity.sso.agent.oidc.bean.TokenData;
 import org.wso2.carbon.identity.sso.agent.oidc.util.CommonUtils;
 
 import java.io.IOException;
@@ -57,7 +58,7 @@ public class MetadataServlet extends HttpServlet {
         if (tokenData.isPresent()) {
             final JSONObject jsonObject = new JSONObject();
             jsonObject.put("AccessToken", tokenData.get().getAccessToken());
-            jsonObject.put("ApiEndpoint", SampleContextEventListener.getPropertyByKey("api_endpoint"));
+            jsonObject.put("ApiEndpoint", SSOAgentContextEventListener.getPropertyByKey("api_endpoint"));
 
             final PrintWriter responseWriter = response.getWriter();
             responseWriter.write(jsonObject.toString());

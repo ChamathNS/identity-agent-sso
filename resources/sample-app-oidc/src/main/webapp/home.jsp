@@ -20,42 +20,28 @@
 
 <%@page import="com.nimbusds.jwt.ReadOnlyJWTClaimsSet" %>
 <%@page import="com.nimbusds.jwt.SignedJWT" %>
-<%@page import="org.wso2.carbon.identity.sso.agent.oidc.util.SSOAgentConstants" %>
-<%@page import="org.wso2.carbon.identity.sso.agent.oidc.SampleContextEventListener" %>
+<%@page import="org.wso2.carbon.identity.sso.agent.oidc.SSOAgentContextEventListener" %>
 <%@page import="org.wso2.carbon.identity.sso.agent.oidc.claims.ClaimManagerProxy" %>
-<%@page import="org.json.JSONObject" %>
+<%@page import="org.wso2.carbon.identity.sso.agent.oidc.util.SSOAgentConstants" %>
 <%@page import="java.util.ArrayList" %>
 <%@page import="java.util.HashMap" %>
-<%@ page import="java.util.Map" %>
+<%@page import="java.util.Map" %>
 <%@ page import="java.util.Properties" %>
 
 <%
     final HttpSession currentSession = request.getSession(false);
-    
-    if (currentSession == null || currentSession.getAttribute("authenticated") == null) {
-        // A direct access to home. Must redirect to index
-        response.sendRedirect("index.html");
-        return;
-    }
-    
-    final Properties properties = SampleContextEventListener.getProperties();
+    final Properties properties = SSOAgentContextEventListener.getProperties();
     final String sessionState = (String) currentSession.getAttribute(SSOAgentConstants.SESSION_STATE);
-    
-    final JSONObject requestObject = (JSONObject) currentSession.getAttribute("requestObject");
-    final JSONObject responseObject = (JSONObject) currentSession.getAttribute("responseObject");
-    
     final String idToken = (String) currentSession.getAttribute("idToken");
     
-    String name = "";
-    
+    String name = null;
     Map<String, Object> customClaimValueMap = new HashMap<>();
     Map<String, String> oidcClaimDisplayValueMap = new HashMap();
     
     if (idToken != null) {
         try {
-            name = SignedJWT.parse(idToken).getJWTClaimsSet().getSubject();
             ReadOnlyJWTClaimsSet claimsSet = SignedJWT.parse(idToken).getJWTClaimsSet();
-            
+            name = claimsSet.getSubject();
             ClaimManagerProxy claimManagerProxy =
                     (ClaimManagerProxy) application.getAttribute("claimManagerProxyInstance");
             

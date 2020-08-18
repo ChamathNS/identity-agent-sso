@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.sso.agent.oidc.util;
 
-
 import org.apache.oltu.oauth2.client.OAuthClient;
 import org.apache.oltu.oauth2.client.URLConnectionClient;
 import org.apache.oltu.oauth2.client.request.OAuthClientRequest;
@@ -27,8 +26,8 @@ import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.types.GrantType;
 import org.json.JSONObject;
-import org.wso2.carbon.identity.sso.agent.oidc.SampleContextEventListener;
-import org.wso2.carbon.identity.sso.agent.oidc.TokenData;
+import org.wso2.carbon.identity.sso.agent.oidc.SSOAgentContextEventListener;
+import org.wso2.carbon.identity.sso.agent.oidc.bean.TokenData;
 import org.wso2.carbon.identity.sso.agent.oidc.exception.SSOAgentClientException;
 import org.wso2.carbon.identity.sso.agent.oidc.exception.SSOAgentServerException;
 
@@ -96,7 +95,7 @@ public class CommonUtils {
 
         final Optional<Cookie> appIdCookie = getAppIdCookie(request);
         final HttpSession session = request.getSession(false);
-        final Properties properties = SampleContextEventListener.getProperties();
+        final Properties properties = SSOAgentContextEventListener.getProperties();
 
         final TokenData storedTokenData;
 

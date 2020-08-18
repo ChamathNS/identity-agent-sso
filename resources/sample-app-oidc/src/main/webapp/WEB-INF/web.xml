@@ -65,7 +65,7 @@
     </filter-mapping>
 
     <listener>
-        <listener-class>org.wso2.carbon.identity.sso.agent.oidc.SampleContextEventListener</listener-class>
+        <listener-class>org.wso2.carbon.identity.sso.agent.oidc.SSOAgentContextEventListener</listener-class>
     </listener>
     <context-param>
         <param-name>app-property-file</param-name>

@@ -30,7 +30,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-public class SampleContextEventListener implements ServletContextListener {
+public class SSOAgentContextEventListener implements ServletContextListener {
 
     private static Properties properties;
 

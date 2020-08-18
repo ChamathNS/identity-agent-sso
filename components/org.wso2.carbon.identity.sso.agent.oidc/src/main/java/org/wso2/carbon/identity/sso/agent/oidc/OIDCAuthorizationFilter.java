@@ -18,12 +18,15 @@
 
 package org.wso2.carbon.identity.sso.agent.oidc;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.oltu.oauth2.client.request.OAuthClientRequest;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.wso2.carbon.identity.sso.agent.oidc.util.SSOAgentConstants;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -53,9 +56,15 @@ public class OIDCAuthorizationFilter implements Filter {
         HttpServletResponse response = (HttpServletResponse) servletResponse;
         HttpSession session = request.getSession();
 
+        Properties properties = SSOAgentContextEventListener.getProperties();
+
+        if (isURLtoSkip(request, properties)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+
         if (session == null || session.getAttribute("authenticated") == null) {
-            // A direct access to home. Must redirect to index
-            Properties properties = SampleContextEventListener.getProperties();
 
             String consumerKey = properties.getProperty(SSOAgentConstants.CONSUMER_KEY);
             String authzEndpoint = properties.getProperty(SSOAgentConstants.OAUTH2_AUTHZ_ENDPOINT);
@@ -98,5 +107,27 @@ public class OIDCAuthorizationFilter implements Filter {
     @Override
     public void destroy() {
 
+    }
+
+    private boolean isURLtoSkip(HttpServletRequest request, Properties properties) {
+
+        Set<String> skipURIs = getSkipURIs(properties);
+        return skipURIs.contains(request.getRequestURI());
+    }
+
+    private Set<String> getSkipURIs(Properties properties) {
+
+        Set<String> skipURIs = new HashSet<String>();
+        String skipURIsString = properties.getProperty(SSOAgentConstants.SKIP_URIS);
+        if (!StringUtils.isBlank(skipURIsString)) {
+            String[] skipURIArray = skipURIsString.split(",");
+            for (String skipURI : skipURIArray) {
+                skipURIs.add(skipURI);
+            }
+        }
+        if (!StringUtils.isBlank(properties.getProperty(SSOAgentConstants.INDEX_PAGE))) {
+            skipURIs.add(properties.getProperty(SSOAgentConstants.INDEX_PAGE));
+        }
+        return skipURIs;
     }
 }
