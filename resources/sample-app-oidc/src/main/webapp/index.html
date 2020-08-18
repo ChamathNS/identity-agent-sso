@@ -1,5 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html>
 <!--
   ~ Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
   ~
@@ -17,16 +15,8 @@
   ~ specific language governing permissions and limitations
   ~ under the License.
   -->
-<%
-    final HttpSession currentSession =  request.getSession(false);
-    if (currentSession != null
-            && currentSession.getAttribute("authenticated") != null
-            &&  (boolean)currentSession.getAttribute("authenticated")) {
-        // Logged in session. Direct to Home
-        response.sendRedirect("home.jsp");
-        return;
-    }
-%>
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">

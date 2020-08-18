@@ -34,7 +34,7 @@
     
     if (currentSession == null || currentSession.getAttribute("authenticated") == null) {
         // A direct access to home. Must redirect to index
-        response.sendRedirect("index.jsp");
+        response.sendRedirect("index.html");
         return;
     }
     

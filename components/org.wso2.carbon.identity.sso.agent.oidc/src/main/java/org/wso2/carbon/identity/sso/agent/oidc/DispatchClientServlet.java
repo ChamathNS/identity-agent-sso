@@ -55,7 +55,7 @@ public class DispatchClientServlet extends HttpServlet {
         // Validate callback properties
         if (request.getParameterMap().isEmpty() || (request.getParameterMap().containsKey("sp") && request.getParameterMap().containsKey("tenantDomain"))) {
             CommonUtils.logout(request, response);
-            response.sendRedirect("index.jsp");
+            response.sendRedirect("index.html");
             return;
         }
 
@@ -64,7 +64,7 @@ public class DispatchClientServlet extends HttpServlet {
         if (StringUtils.isNotBlank(error)) {
             // Error response from IDP
             CommonUtils.logout(request, response);
-            response.sendRedirect("index.jsp");
+            response.sendRedirect("index.html");
             return;
         }
 
@@ -77,7 +77,7 @@ public class DispatchClientServlet extends HttpServlet {
             CommonUtils.getToken(request, response);
             response.sendRedirect("home.jsp");
         } catch (SSOAgentServerException | OAuthSystemException | OAuthProblemException e) {
-            response.sendRedirect("index.jsp");
+            response.sendRedirect("index.html");
         }
     }
 
