@@ -360,6 +360,7 @@
         <module>resources/SampleApp</module>
         <module>resources/SampleApp-boilerplate</module>
         <module>resources/sample-app-oidc</module>
+        <module>components/org.wso2.carbon.identity.sso.agent.oidc</module>
     </modules>
 
 </project>
