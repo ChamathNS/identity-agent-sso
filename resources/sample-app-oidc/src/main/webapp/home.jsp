@@ -104,7 +104,7 @@
             </div>
             <table class="center">
                 <tbody>
-                <% for (String claim : userAttributeClaims) { %>
+                <% for (String claim: customClaimValueMap.keySet()) { %>
                 <tr>
                     <td><%=claim%>
                     </td>
