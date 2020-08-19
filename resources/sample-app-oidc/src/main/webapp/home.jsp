@@ -21,12 +21,13 @@
 <%@page import="com.nimbusds.jwt.ReadOnlyJWTClaimsSet" %>
 <%@page import="com.nimbusds.jwt.SignedJWT" %>
 <%@page import="org.wso2.carbon.identity.sso.agent.oidc.SSOAgentContextEventListener" %>
-<%@page import="org.wso2.carbon.identity.sso.agent.oidc.claims.ClaimManagerProxy" %>
 <%@page import="org.wso2.carbon.identity.sso.agent.oidc.util.SSOAgentConstants" %>
-<%@page import="java.util.ArrayList" %>
 <%@page import="java.util.HashMap" %>
 <%@page import="java.util.Map" %>
 <%@ page import="java.util.Properties" %>
+<%@ page import="java.util.Set" %>
+<%@ page import="java.util.Arrays" %>
+<%@ page import="java.util.HashSet" %>
 
 <%
     final HttpSession currentSession = request.getSession(false);
@@ -36,19 +37,13 @@
     
     String name = null;
     Map<String, Object> customClaimValueMap = new HashMap<>();
-    Map<String, String> oidcClaimDisplayValueMap = new HashMap();
+    Set<String> userAttributeClaims = new HashSet<>(Arrays.asList("country", "gender", "email", "birthdate"));;
     
     if (idToken != null) {
         try {
             ReadOnlyJWTClaimsSet claimsSet = SignedJWT.parse(idToken).getJWTClaimsSet();
             name = claimsSet.getSubject();
-            ClaimManagerProxy claimManagerProxy =
-                    (ClaimManagerProxy) application.getAttribute("claimManagerProxyInstance");
-            
             customClaimValueMap = claimsSet.getCustomClaims();
-            
-            oidcClaimDisplayValueMap =
-                    claimManagerProxy.getOidcClaimDisplayNameMapping(new ArrayList<>(customClaimValueMap.keySet()));
             
         } catch (Exception e) {
             e.printStackTrace();
@@ -102,16 +97,16 @@
             </h1>
         </div>
         
-        <% if (!oidcClaimDisplayValueMap.isEmpty()) { %>
+        <% if (!customClaimValueMap.isEmpty()) { %>
         <div class="element-padding">
             <div class="element-padding">
                 <h3 align="center">User Details</h3>
             </div>
             <table class="center">
                 <tbody>
-                <% for (String claim : oidcClaimDisplayValueMap.keySet()) { %>
+                <% for (String claim : userAttributeClaims) { %>
                 <tr>
-                    <td><%=oidcClaimDisplayValueMap.get(claim)%>
+                    <td><%=claim%>
                     </td>
                     <td><%=customClaimValueMap.get(claim).toString()%>
                     </td>
