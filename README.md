@@ -5,10 +5,14 @@ The WSO2 SAML SDK for Java enables software developers to integrate SAML based S
   single sign-on and federated access control solutions with minimum hassle.
 
 ## Trying out the sample
+
+### Prerequisites
+1. WSO2 Identity Server and it's [prerequisites](https://is.docs.wso2.com/en/next/setup/installing-the-product/).
+
 A sample app for demonstrating SAML based SSO authentication, SLO and attribute retrieval is hosted at:
 https://github.com/wso2-extensions/identity-agent-sso/tree/master/resources/SampleApp
 
-You can download the pre-built SampleApp.war from here[link].
+You can download the pre-built SampleApp.war from https://github.com/wso2-extensions/identity-agent-sso/releases/latest
 
 ### Running the SampleApp
 
@@ -20,15 +24,23 @@ In order to check SSO using SAML2, please follow these steps
    For the service provider, configure SAML2 Web SSO under Inbound Authentication Configuration. In this configuration,
    use following parameters and options,
      
-       Issuer - sampleApp  
+       Issuer - SampleApp  
        Assertion Consumer URLs - http://localhost:8080/SampleApp/home.jsp 
+       Enable Attribute Profile - True
+       Include Attributes in the Response Always - True
 
 
    Keep other default settings as it is and save the configuration.
    
-   Next, expand the Claim Configuration section. In this configuration, add the claims you need to retrive from the
-    web app.
+   Next, expand the [Claim Configuration](https://is.docs.wso2.com/en/latest/learn/configuring-claims-for-a-service-provider/#configuring-claims-for-a-service-provider) section. In this configuration, Set the following config and add the claims you 
+   need to retrieve (ex: http://wso2.org/claims/lastname) from the web app.
+   
+       Select Claim mapping Dialect - Use Local Claim Dialect
+       
+   See the example claim config below.
+   ![Claim Config](https://user-images.githubusercontent.com/15249242/90488235-38d45580-e159-11ea-8beb-52d6b5c35034.png)
 
+       
 3. Deploy the application, `SampleApp.war` using Apache Tomcat.
 4. Try out the application by accessing the `http://localhost:8080/SampleApp/index.html`.
 
@@ -102,8 +114,9 @@ This allows the developers to turn a Java application into a SP (Service Provide
 - Enable a Single Logout Service endpoint.
 - Publish the SP metadata.
 
-A sample application boilerplate is included in https://github.com/wso2-extensions/identity-agent-sso/tree/master/resources/SampleApp-boilerplate which we would use for the following section. The structure of
- the web app boilerplate would be as follows:
+A sample application boilerplate is included in https://github.com/wso2-extensions/identity-agent-sso/tree/master/resources/SampleApp-boilerplate which we would use for the following section. 
+
+The structure of the web app boilerplate would be as follows:
 
 [![INSERT YOUR GRAPHIC HERE](https://miro.medium.com/max/1400/1*M9-eI8gcUugJD_6u7PXN1Q.png)]()
 
@@ -113,11 +126,11 @@ Starting with the pom.xml, the following dependencies should be added for the we
 
 Install it as a maven dependency:
 ```
-    <dependency>
-        <groupId>org.wso2.carbon.identity.agent.sso.java</groupId>
-        <artifactId>org.wso2.carbon.identity.sso.tomcat.server</artifactId>
-        <version>5.5.1</version>
-    </dependency>
+<dependency>
+    <groupId>org.wso2.carbon.identity.agent.sso.java</groupId>
+    <artifactId>org.wso2.carbon.identity.sso.tomcat.server</artifactId>
+    <version>5.5.5</version>
+</dependency>
 ```
 The SDK is hosted at the WSO2 Internal Repository. Point to the repository as follows:
 
@@ -164,7 +177,7 @@ EnableSAML2SSOLogin=true
 SAML2SSOURL=samlsso
 
 #URIs to skip SSOAgentFilter; comma separated values
-SkipURIs=/SampleApp/index.html
+SkipURIs=
 
 IndexPage=/SampleApp/index.html
 
@@ -319,24 +332,24 @@ Then, we would use the `saml2SSOAttributes` in the **home.jsp** to display the u
 
 ```
 <table>
-                <%
-                    if (saml2SSOAttributes != null) {
-                        for (Map.Entry<String, String> entry : saml2SSOAttributes.entrySet()) {
-                %>
-                <tr>
-                    <td><%=entry.getKey()%>
-                    </td>
-                    <td><%=entry.getValue()%>
-                    </td>
-                </tr>
-                <%
-                        }
-                    }
-                %>
-            </table>
+   <%
+       if (saml2SSOAttributes != null) {
+           for (Map.Entry<String, String> entry : saml2SSOAttributes.entrySet()) {
+   %>
+   <tr>
+       <td><%=entry.getKey()%>
+       </td>
+       <td><%=entry.getValue()%>
+       </td>
+   </tr>
+   <%
+           }
+       }
+   %>
+</table>
 ```
-After the above configurations, your would app would be able to try out authentication, logout and attribute
- retrieval flows with SAML.
+After the above configurations, your app would be able to try out the authentication, logout and attribute 
+retrieval flows with SAML.
  
 ## Installing the SDK
 
@@ -358,11 +371,11 @@ If you want to build **identity-agent-sso** from the source code:
 
 Install it as a maven dependency:
 ```
-    <dependency>
-        <groupId>org.wso2.carbon.identity.agent.sso.java</groupId>
-        <artifactId>org.wso2.carbon.identity.sso.tomcat.server</artifactId>
-        <version>5.5.1</version>
-    </dependency>
+<dependency>
+    <groupId>org.wso2.carbon.identity.agent.sso.java</groupId>
+    <artifactId>org.wso2.carbon.identity.sso.tomcat.server</artifactId>
+    <version>5.5.5</version>
+</dependency>
 ```
 The SDK is hosted at the WSO2 Internal Repository. Point to the repository as follows:
 
@@ -386,6 +399,13 @@ The SDK is hosted at the WSO2 Internal Repository. Point to the repository as fo
 
 Please read [Contributing to the Code Base](http://wso2.github.io/) for details on our code of conduct, and the
  process for submitting pull requests to us.
+ 
+### Reporting Issues
+We encourage you to report issues, improvements, and feature requests creating [git Issues](https://github.com/wso2-extensions/identity-samples-dotnet/issues).
+
+Important: And please be advised that security issues must be reported to security@wso2.com, not as GitHub issues, 
+in order to reach the proper audience. We strongly advise following the WSO2 Security Vulnerability Reporting Guidelines
+ when reporting the security issues.
 
 ## Versioning
 
