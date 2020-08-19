@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.sso.agent.oidc;
 import org.apache.commons.lang.StringUtils;
 import org.apache.oltu.oauth2.client.request.OAuthClientRequest;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
+import org.wso2.carbon.identity.sso.agent.oidc.exception.SSOAgentClientException;
 import org.wso2.carbon.identity.sso.agent.oidc.util.SSOAgentConstants;
 
 import java.io.IOException;
@@ -96,7 +97,12 @@ public class OIDCAuthorizationFilter implements Filter {
                 response.sendRedirect(authzRequest.getLocationUri());
                 return;
             } catch (OAuthSystemException e) {
-                response.sendRedirect("index.html");
+                String indexPage = getIndexPage(properties);
+                if (!StringUtils.isBlank(indexPage)) {
+                    response.sendRedirect(indexPage);
+                } else {
+                    throw new SSOAgentClientException("indexPage property is not configured.");
+                }
             }
         } else {
             filterChain.doFilter(request, response);
@@ -128,5 +134,14 @@ public class OIDCAuthorizationFilter implements Filter {
             skipURIs.add(properties.getProperty(SSOAgentConstants.INDEX_PAGE));
         }
         return skipURIs;
+    }
+
+    private String getIndexPage(Properties properties) {
+
+        String indexPage = null;
+        if (!StringUtils.isBlank(properties.getProperty(SSOAgentConstants.INDEX_PAGE))) {
+            indexPage = properties.getProperty(SSOAgentConstants.INDEX_PAGE);
+        }
+        return indexPage;
     }
 }

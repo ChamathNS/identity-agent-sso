@@ -21,11 +21,13 @@ package org.wso2.carbon.identity.sso.agent.oidc;
 import org.apache.commons.lang.StringUtils;
 import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
+import org.wso2.carbon.identity.sso.agent.oidc.exception.SSOAgentClientException;
 import org.wso2.carbon.identity.sso.agent.oidc.exception.SSOAgentServerException;
 import org.wso2.carbon.identity.sso.agent.oidc.util.CommonUtils;
 import org.wso2.carbon.identity.sso.agent.oidc.util.SSOAgentConstants;
 
 import java.io.IOException;
+import java.util.Properties;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -47,7 +49,10 @@ public class DispatchClientServlet extends HttpServlet {
     }
 
     private void responseHandler(final HttpServletRequest request, final HttpServletResponse response)
-            throws IOException {
+            throws IOException, SSOAgentClientException {
+
+        Properties properties = SSOAgentContextEventListener.getProperties();
+        String indexPage = getIndexPage(properties);
         // Create the initial session
         if (request.getSession(false) == null) {
             request.getSession(true);
@@ -57,7 +62,11 @@ public class DispatchClientServlet extends HttpServlet {
         if (request.getParameterMap().isEmpty() || (request.getParameterMap().containsKey("sp") &&
                 request.getParameterMap().containsKey("tenantDomain"))) {
             CommonUtils.logout(request, response);
-            response.sendRedirect("index.html");
+            if (!StringUtils.isBlank(indexPage)) {
+                response.sendRedirect(indexPage);
+            } else {
+                throw new SSOAgentClientException("indexPage property is not configured.");
+            }
             return;
         }
 
@@ -66,7 +75,11 @@ public class DispatchClientServlet extends HttpServlet {
         if (StringUtils.isNotBlank(error)) {
             // Error response from IDP
             CommonUtils.logout(request, response);
-            response.sendRedirect("index.html");
+            if (!StringUtils.isBlank(indexPage)) {
+                response.sendRedirect(indexPage);
+            } else {
+                throw new SSOAgentClientException("indexPage property is not configured.");
+            }
             return;
         }
 
@@ -79,8 +92,20 @@ public class DispatchClientServlet extends HttpServlet {
             CommonUtils.getToken(request, response);
             response.sendRedirect("home.jsp");
         } catch (SSOAgentServerException | OAuthSystemException | OAuthProblemException e) {
-            response.sendRedirect("index.html");
+            if (!StringUtils.isBlank(indexPage)) {
+                response.sendRedirect(indexPage);
+            } else {
+                throw new SSOAgentClientException("indexPage property is not configured.");
+            }
         }
     }
 
+    private String getIndexPage(Properties properties) {
+
+        String indexPage = null;
+        if (!StringUtils.isBlank(properties.getProperty(SSOAgentConstants.INDEX_PAGE))) {
+            indexPage = properties.getProperty(SSOAgentConstants.INDEX_PAGE);
+        }
+        return indexPage;
+    }
 }
