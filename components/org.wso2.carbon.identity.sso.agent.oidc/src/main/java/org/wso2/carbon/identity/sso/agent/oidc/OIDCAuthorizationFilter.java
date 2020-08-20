@@ -18,13 +18,17 @@
 
 package org.wso2.carbon.identity.sso.agent.oidc;
 
+import com.nimbusds.oauth2.sdk.AuthorizationRequest;
+import com.nimbusds.oauth2.sdk.ResponseType;
+import com.nimbusds.oauth2.sdk.Scope;
+import com.nimbusds.oauth2.sdk.id.ClientID;
 import org.apache.commons.lang.StringUtils;
-import org.apache.oltu.oauth2.client.request.OAuthClientRequest;
-import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.wso2.carbon.identity.sso.agent.oidc.exception.SSOAgentClientException;
 import org.wso2.carbon.identity.sso.agent.oidc.util.SSOAgentConstants;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
@@ -58,7 +62,7 @@ public class OIDCAuthorizationFilter implements Filter {
 
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
-        HttpSession session = request.getSession();
+        HttpSession session = request.getSession(false);
 
         Properties properties = SSOAgentContextEventListener.getProperties();
 
@@ -68,7 +72,7 @@ public class OIDCAuthorizationFilter implements Filter {
         }
 
         if (session == null || session.getAttribute("authenticated") == null) {
-
+            //TODO: extract to method
             String consumerKey = properties.getProperty(SSOAgentConstants.CONSUMER_KEY);
             String authzEndpoint = properties.getProperty(SSOAgentConstants.OAUTH2_AUTHZ_ENDPOINT);
             String authzGrantType = properties.getProperty(SSOAgentConstants.OAUTH2_GRANT_TYPE);
@@ -85,21 +89,18 @@ public class OIDCAuthorizationFilter implements Filter {
             session.setAttribute(SSOAgentConstants.OIDC_LOGOUT_ENDPOINT, logoutEndpoint);
             session.setAttribute(SSOAgentConstants.OIDC_SESSION_IFRAME_ENDPOINT, sessionIFrameEndpoint);
 
-            OAuthClientRequest.AuthenticationRequestBuilder oAuthAuthenticationRequestBuilder =
-                    new OAuthClientRequest.AuthenticationRequestBuilder(authzEndpoint);
-            oAuthAuthenticationRequestBuilder
-                    .setClientId(consumerKey)
-                    .setRedirectURI((String) session.getAttribute(SSOAgentConstants.CALL_BACK_URL))
-                    .setResponseType(authzGrantType)
-                    .setScope(scope);
-
-            // Build the new response mode with form post.
-            OAuthClientRequest authzRequest;
+            AuthorizationRequest authzRequest = null;
             try {
-                authzRequest = oAuthAuthenticationRequestBuilder.buildQueryMessage();
-                response.sendRedirect(authzRequest.getLocationUri());
+                authzRequest = new AuthorizationRequest.Builder(
+                        new ResponseType(ResponseType.Value.CODE), new ClientID(consumerKey))
+                        .scope(new Scope(scope))
+                        .redirectionURI(new URI((String) session.getAttribute(SSOAgentConstants.CALL_BACK_URL)))
+                        .endpointURI(new URI(authzEndpoint))
+                        .build();
+                response.sendRedirect(authzRequest.toURI().toString());
                 return;
-            } catch (OAuthSystemException e) {
+            } catch (URISyntaxException e) {
+                //TODO: add logger
                 String indexPage = getIndexPage(properties);
                 if (StringUtils.isNotBlank(indexPage)) {
                     response.sendRedirect(indexPage);
@@ -107,6 +108,7 @@ public class OIDCAuthorizationFilter implements Filter {
                     throw new SSOAgentClientException("indexPage property is not configured.");
                 }
             }
+
         } else {
             filterChain.doFilter(request, response);
         }

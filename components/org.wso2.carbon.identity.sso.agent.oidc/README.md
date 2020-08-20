@@ -227,7 +227,7 @@ to match yours.
 
     <servlet>
         <servlet-name>OAuth2ClientServlet</servlet-name>
-        <servlet-class>org.wso2.carbon.identity.sso.agent.oidc.DispatchClientServlet</servlet-class>
+        <servlet-class>org.wso2.carbon.identity.sso.agent.oidc.OIDCCallbackResponseHandler</servlet-class>
         <load-on-startup>0</load-on-startup>
     </servlet>
     <servlet>

@@ -16,25 +16,17 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.sso.agent.oidc.util;
+package org.wso2.carbon.identity.sso.agent.oidc;
 
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import org.apache.oltu.oauth2.client.OAuthClient;
-import org.apache.oltu.oauth2.client.URLConnectionClient;
-import org.apache.oltu.oauth2.client.request.OAuthClientRequest;
-import org.apache.oltu.oauth2.client.response.OAuthClientResponse;
-import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
-import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
-import org.apache.oltu.oauth2.common.message.types.GrantType;
-import org.json.JSONObject;
-import org.wso2.carbon.identity.sso.agent.oidc.SSOAgentContextEventListener;
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.sso.agent.oidc.bean.TokenData;
-import org.wso2.carbon.identity.sso.agent.oidc.exception.SSOAgentClientException;
 import org.wso2.carbon.identity.sso.agent.oidc.exception.SSOAgentServerException;
+import org.wso2.carbon.identity.sso.agent.oidc.util.CommonUtils;
+import org.wso2.carbon.identity.sso.agent.oidc.util.SSOAgentConstants;
 
 import java.io.IOException;
-import java.net.URL;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,61 +34,129 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
 
-import javax.net.ssl.HttpsURLConnection;
+import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import static org.wso2.carbon.identity.sso.agent.oidc.util.CommonUtils.getAppIdCookie;
+
 /**
- * This class is used to define the utilities required in sso-agent-oidc module.
+ * A servlet class to handle OIDC callback responses.
  */
-public class CommonUtils {
+public class OIDCCallbackResponseHandler extends HttpServlet {
 
-    public static final Map<String, TokenData> TOKEN_STORE = new HashMap<>();
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-    private CommonUtils() {
-
+        handleOIDCCallback(req, resp);
     }
 
-    public static JSONObject requestToJson(final OAuthClientRequest accessRequest) {
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-        JSONObject obj = new JSONObject();
-        obj.append("tokenEndPoint", accessRequest.getLocationUri());
-        obj.append("request body", accessRequest.getBody());
-
-        return obj;
+        handleOIDCCallback(req, resp);
     }
 
-    public static JSONObject responseToJson(final OAuthClientResponse oAuthResponse) {
+    private void handleOIDCCallback(final HttpServletRequest request, final HttpServletResponse response)
+            throws IOException {
 
-        JSONObject obj = new JSONObject();
-        obj.append("status-code", "200");
-        obj.append("id_token", oAuthResponse.getParam("id_token"));
-        obj.append("access_token", oAuthResponse.getParam("access_token"));
-        return obj;
+        Properties properties = SSOAgentContextEventListener.getProperties();
+        String indexPage = getIndexPage(properties);
 
-    }
-
-    public static boolean logout(final HttpServletRequest request, final HttpServletResponse response) {
-        // Invalidate session
-        final HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.invalidate();
+        // Error response from IDP
+        if (isError(request)) {
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                session.invalidate();
+            }
+            handleAppIdCookieForLogout(request, response);
+            response.sendRedirect(indexPage);
+            return;
         }
 
-        final Optional<Cookie> appIdCookie = getAppIdCookie(request);
+        // Create the initial session
+        if (request.getSession(false) == null) {
+            request.getSession(true);
+        }
+
+        // Validate callback properties
+        if (isLogout(request)) {
+            CommonUtils.logout(request, response);
+            response.sendRedirect(indexPage);
+            return;
+        }
+
+        // Obtain and store session_state against this session
+        request.getSession(false)
+                .setAttribute(SSOAgentConstants.SESSION_STATE, request.getParameter(SSOAgentConstants.SESSION_STATE));
+
+        if (isLogin(request)) {
+            try {
+                // Obtain token response
+                getToken(request, response);
+                response.sendRedirect("home.jsp");
+            } catch (SSOAgentServerException e) {
+                response.sendRedirect(indexPage);
+            }
+        }
+    }
+
+    private void handleAppIdCookieForLogout(HttpServletRequest request, HttpServletResponse response) {
+
+        Optional<Cookie> appIdCookie = getAppIdCookie(request);
 
         if (appIdCookie.isPresent()) {
-            TOKEN_STORE.remove(appIdCookie.get().getValue());
+            CommonUtils.TOKEN_STORE.remove(appIdCookie.get().getValue());
             appIdCookie.get().setMaxAge(0);
             response.addCookie(appIdCookie.get());
+        }
+    }
+
+    private String getIndexPage(Properties properties) {
+
+        String indexPage = null;
+        if (StringUtils.isNotBlank(properties.getProperty(SSOAgentConstants.INDEX_PAGE))) {
+            indexPage = properties.getProperty(SSOAgentConstants.INDEX_PAGE);
+        } else {
+            indexPage = "./";
+        }
+        return indexPage;
+    }
+
+    private boolean isLogout(HttpServletRequest request) {
+
+        if (request.getParameterMap().isEmpty()) {
+            return true;
+        }
+        if (request.getParameterMap().containsKey("sp") &&
+                request.getParameterMap().containsKey("tenantDomain")) {
             return true;
         }
         return false;
     }
 
-    public static void getToken(final HttpServletRequest request, final HttpServletResponse response)
+    private Map<String, Object> getUserAttributes(String idToken) throws SSOAgentServerException {
+
+        Map<String, Object> userClaimValueMap = new HashMap<>();
+        try {
+            JWTClaimsSet claimsSet = SignedJWT.parse(idToken).getJWTClaimsSet();
+            Map<String, Object> customClaimValueMap = claimsSet.getClaims();
+
+            for (String claim : customClaimValueMap.keySet()) {
+                if (!SSOAgentConstants.OIDC_METADATA_CLAIMS.contains(claim)) {
+                    userClaimValueMap.put(claim, customClaimValueMap.get(claim));
+                }
+            }
+        } catch (ParseException e) {
+            throw new SSOAgentServerException("Error while parsing JWT.");
+        }
+        return userClaimValueMap;
+    }
+
+    private void getToken(final HttpServletRequest request, final HttpServletResponse response)
             throws OAuthProblemException, OAuthSystemException, SSOAgentServerException {
 
         HttpSession session = request.getSession(false);
@@ -166,70 +226,15 @@ public class CommonUtils {
         }
     }
 
-    public static Optional<Cookie> getAppIdCookie(final HttpServletRequest request) {
+    private boolean isLogin(HttpServletRequest request) {
 
-        final Cookie[] cookies = request.getCookies();
-
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("AppID".equals(cookie.getName())) {
-                    return Optional.of(cookie);
-                }
-            }
-        }
-        return Optional.empty();
+        String authzCode = request.getParameter("code");
+        return StringUtils.isNotBlank(authzCode);
     }
 
-    public static Optional<TokenData> getTokenDataByCookieID(final String cookieID) {
+    private boolean isError(HttpServletRequest request) {
 
-        if (TOKEN_STORE.containsKey(cookieID)) {
-            return Optional.of(TOKEN_STORE.get(cookieID));
-        }
-
-        return Optional.empty();
-    }
-
-    private static void setTokenDataToSession(final HttpSession session, final TokenData storedTokenData) {
-
-        session.setAttribute("authenticated", true);
-        session.setAttribute("accessToken", storedTokenData.getAccessToken());
-        session.setAttribute("idToken", storedTokenData.getIdToken());
-    }
-
-    private static HttpsURLConnection getHttpsURLConnection(final String url) throws SSOAgentClientException {
-
-        try {
-            final URL requestUrl = new URL(url);
-            return (HttpsURLConnection) requestUrl.openConnection();
-        } catch (IOException e) {
-            throw new SSOAgentClientException("Error while creating connection to: " + url, e);
-        }
-    }
-
-    private static boolean checkOAuth(final HttpServletRequest request) {
-
-        final HttpSession currentSession = request.getSession(false);
-
-        return currentSession != null
-                && currentSession.getAttribute("authenticated") != null
-                && (boolean) currentSession.getAttribute("authenticated");
-    }
-
-    private static Map<String, Object> getUserAttributes(String idToken) throws SSOAgentServerException {
-
-        Map<String, Object> userClaimValueMap = new HashMap<>();
-        try {
-            JWTClaimsSet claimsSet = SignedJWT.parse(idToken).getJWTClaimsSet();
-            Map<String, Object> customClaimValueMap = claimsSet.getClaims();
-
-            for (String claim : customClaimValueMap.keySet()) {
-                if (!SSOAgentConstants.OIDC_METADATA_CLAIMS.contains(claim)) {
-                    userClaimValueMap.put(claim, customClaimValueMap.get(claim));
-                }
-            }
-        } catch (ParseException e) {
-            throw new SSOAgentServerException("Error while parsing JWT.");
-        }
-        return userClaimValueMap;
+        String error = request.getParameter(SSOAgentConstants.ERROR);
+        return StringUtils.isNotBlank(error);
     }
 }
