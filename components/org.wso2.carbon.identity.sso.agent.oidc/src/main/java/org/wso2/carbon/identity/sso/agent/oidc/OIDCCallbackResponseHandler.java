@@ -20,13 +20,29 @@ package org.wso2.carbon.identity.sso.agent.oidc;
 
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import com.nimbusds.oauth2.sdk.AccessTokenResponse;
+import com.nimbusds.oauth2.sdk.AuthorizationCode;
+import com.nimbusds.oauth2.sdk.AuthorizationCodeGrant;
+import com.nimbusds.oauth2.sdk.AuthorizationGrant;
+import com.nimbusds.oauth2.sdk.TokenErrorResponse;
+import com.nimbusds.oauth2.sdk.TokenRequest;
+import com.nimbusds.oauth2.sdk.TokenResponse;
+import com.nimbusds.oauth2.sdk.auth.ClientAuthentication;
+import com.nimbusds.oauth2.sdk.auth.ClientSecretBasic;
+import com.nimbusds.oauth2.sdk.auth.Secret;
+import com.nimbusds.oauth2.sdk.id.ClientID;
+import net.minidev.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.sso.agent.oidc.bean.TokenData;
+import org.wso2.carbon.identity.sso.agent.oidc.bean.User;
+import org.wso2.carbon.identity.sso.agent.oidc.exception.SSOAgentClientException;
 import org.wso2.carbon.identity.sso.agent.oidc.exception.SSOAgentServerException;
 import org.wso2.carbon.identity.sso.agent.oidc.util.CommonUtils;
 import org.wso2.carbon.identity.sso.agent.oidc.util.SSOAgentConstants;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,7 +50,6 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -49,13 +64,13 @@ import static org.wso2.carbon.identity.sso.agent.oidc.util.CommonUtils.getAppIdC
 public class OIDCCallbackResponseHandler extends HttpServlet {
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
         handleOIDCCallback(req, resp);
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
         handleOIDCCallback(req, resp);
     }
@@ -64,7 +79,7 @@ public class OIDCCallbackResponseHandler extends HttpServlet {
             throws IOException {
 
         Properties properties = SSOAgentContextEventListener.getProperties();
-        String indexPage = getIndexPage(properties);
+        String indexPage;
 
         // Error response from IDP
         if (isError(request)) {
@@ -73,6 +88,7 @@ public class OIDCCallbackResponseHandler extends HttpServlet {
                 session.invalidate();
             }
             handleAppIdCookieForLogout(request, response);
+            indexPage = getIndexPage(session, properties);
             response.sendRedirect(indexPage);
             return;
         }
@@ -81,6 +97,7 @@ public class OIDCCallbackResponseHandler extends HttpServlet {
         if (request.getSession(false) == null) {
             request.getSession(true);
         }
+        indexPage = getIndexPage(request.getSession(false), properties);
 
         // Validate callback properties
         if (isLogout(request)) {
@@ -98,8 +115,110 @@ public class OIDCCallbackResponseHandler extends HttpServlet {
                 // Obtain token response
                 getToken(request, response);
                 response.sendRedirect("home.jsp");
-            } catch (SSOAgentServerException e) {
+            } catch (SSOAgentServerException | SSOAgentClientException e) {
                 response.sendRedirect(indexPage);
+            }
+        }
+    }
+
+    private void getToken(final HttpServletRequest request, final HttpServletResponse response)
+            throws SSOAgentServerException, SSOAgentClientException, IOException {
+
+        HttpSession session = request.getSession(false);
+        if (!checkOAuth(request)) {
+            session.invalidate();
+            session = request.getSession();
+        }
+        final Optional<Cookie> appIdCookie = getAppIdCookie(request);
+        final Properties properties = SSOAgentContextEventListener.getProperties();
+        final TokenData storedTokenData;
+
+        if (appIdCookie.isPresent()) {
+            storedTokenData = CommonUtils.TOKEN_STORE.get(appIdCookie.get().getValue());
+            if (storedTokenData != null) {
+                setTokenDataToSession(session, storedTokenData);
+                return;
+            }
+        }
+
+        final String authzCode = request.getParameter("code");
+
+        if (authzCode == null) {
+            throw new SSOAgentServerException("Authorization code not present in callback");
+        }
+
+        AuthorizationCode authorizationCode = new AuthorizationCode(authzCode);
+        URI callbackURI;
+        try {
+            callbackURI = new URI(properties.getProperty(SSOAgentConstants.CALL_BACK_URL));
+        } catch (URISyntaxException e) {
+            throw new SSOAgentClientException("callback URL is not configured.");
+        }
+        AuthorizationGrant authorizationGrant = new AuthorizationCodeGrant(authorizationCode, callbackURI);
+        ClientID clientID = new ClientID(properties.getProperty(SSOAgentConstants.CONSUMER_KEY));
+        Secret clientSecret = new Secret(properties.getProperty(SSOAgentConstants.CONSUMER_SECRET));
+        ClientAuthentication clientAuthentication = new ClientSecretBasic(clientID, clientSecret);
+        URI tokenEndpoint;
+        try {
+            tokenEndpoint = new URI(properties.getProperty(SSOAgentConstants.OIDC_TOKEN_ENDPOINT));
+        } catch (URISyntaxException e) {
+            throw new SSOAgentClientException("token endpoint URL is not configured.");
+        }
+
+        TokenRequest tokenRequest = new TokenRequest(tokenEndpoint, clientAuthentication, authorizationGrant);
+        TokenResponse tokenResponse = null;
+        try {
+            tokenResponse = TokenResponse.parse(tokenRequest.toHTTPRequest().send());
+        } catch (com.nimbusds.oauth2.sdk.ParseException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        JSONObject requestObject = requestToJson(tokenRequest);
+        JSONObject responseObject;
+
+        if (!tokenResponse.indicatesSuccess()) {
+            TokenErrorResponse errorResponse = tokenResponse.toErrorResponse();
+            responseObject = errorResponse.toJSONObject();
+            session.setAttribute("requestObject", requestObject);
+            session.setAttribute("responseObject", responseObject);
+            session.invalidate();
+            response.sendRedirect("./");
+        } else {
+            AccessTokenResponse successResponse = tokenResponse.toSuccessResponse();
+            responseObject = successResponse.toJSONObject();
+            final String accessToken = successResponse.getTokens().getAccessToken().toString();
+
+            session.setAttribute("requestObject", requestObject);
+            session.setAttribute("responseObject", responseObject);
+            if (accessToken != null) {
+                session.setAttribute("accessToken", accessToken);
+                String idToken = successResponse.getCustomParameters().get("id_token").toString();
+
+                if (idToken != null) {
+                    try {
+                        JWTClaimsSet claimsSet = SignedJWT.parse(idToken).getJWTClaimsSet();
+                        User user = new User(claimsSet.getSubject(), getUserAttributes(idToken));
+                        session.setAttribute("idToken", idToken);
+                        session.setAttribute("user", user);
+                    } catch (ParseException e) {
+                        throw new SSOAgentServerException("Error while parsing id_token.");
+                    }
+                }
+                session.setAttribute("authenticated", true);
+
+                TokenData tokenData = new TokenData();
+                tokenData.setAccessToken(accessToken);
+                tokenData.setIdToken(idToken);
+
+                final String sessionId = UUID.randomUUID().toString();
+                CommonUtils.TOKEN_STORE.put(sessionId, tokenData);
+                final Cookie cookie = new Cookie("AppID", sessionId);
+                cookie.setMaxAge(-1);
+                cookie.setPath("/");
+                response.addCookie(cookie);
+            } else {
+                session.invalidate();
             }
         }
     }
@@ -115,17 +234,6 @@ public class OIDCCallbackResponseHandler extends HttpServlet {
         }
     }
 
-    private String getIndexPage(Properties properties) {
-
-        String indexPage = null;
-        if (StringUtils.isNotBlank(properties.getProperty(SSOAgentConstants.INDEX_PAGE))) {
-            indexPage = properties.getProperty(SSOAgentConstants.INDEX_PAGE);
-        } else {
-            indexPage = "./";
-        }
-        return indexPage;
-    }
-
     private boolean isLogout(HttpServletRequest request) {
 
         if (request.getParameterMap().isEmpty()) {
@@ -136,6 +244,14 @@ public class OIDCCallbackResponseHandler extends HttpServlet {
             return true;
         }
         return false;
+    }
+
+    private JSONObject requestToJson(TokenRequest tokenRequest) {
+
+        JSONObject obj = new JSONObject();
+        obj.appendField("tokenEndpoint", tokenRequest.toHTTPRequest().getURI().toString());
+        obj.appendField("request body", tokenRequest.toHTTPRequest().getQueryParameters());
+        return obj;
     }
 
     private Map<String, Object> getUserAttributes(String idToken) throws SSOAgentServerException {
@@ -156,76 +272,6 @@ public class OIDCCallbackResponseHandler extends HttpServlet {
         return userClaimValueMap;
     }
 
-    private void getToken(final HttpServletRequest request, final HttpServletResponse response)
-            throws OAuthProblemException, OAuthSystemException, SSOAgentServerException {
-
-        HttpSession session = request.getSession(false);
-        if (!checkOAuth(request)) {
-            session.invalidate();
-            session = request.getSession();
-        }
-        final Optional<Cookie> appIdCookie = getAppIdCookie(request);
-        final Properties properties = SSOAgentContextEventListener.getProperties();
-        final TokenData storedTokenData;
-
-        if (appIdCookie.isPresent()) {
-            storedTokenData = TOKEN_STORE.get(appIdCookie.get().getValue());
-            if (storedTokenData != null) {
-                setTokenDataToSession(session, storedTokenData);
-                return;
-            }
-        }
-
-        final String authzCode = request.getParameter("code");
-
-        if (authzCode == null) {
-            throw new SSOAgentServerException("Authorization code not present in callback");
-        }
-
-        final OAuthClientRequest.TokenRequestBuilder oAuthTokenRequestBuilder =
-                new OAuthClientRequest.TokenRequestBuilder(
-                        properties.getProperty(SSOAgentConstants.OIDC_TOKEN_ENDPOINT));
-
-        final OAuthClientRequest accessRequest = oAuthTokenRequestBuilder.setGrantType(GrantType.AUTHORIZATION_CODE)
-                .setClientId(properties.getProperty(SSOAgentConstants.CONSUMER_KEY))
-                .setClientSecret(properties.getProperty(SSOAgentConstants.CONSUMER_SECRET))
-                .setRedirectURI(properties.getProperty(SSOAgentConstants.CALL_BACK_URL))
-                .setCode(authzCode)
-                .buildBodyMessage();
-
-        //create OAuth client that uses custom http client under the hood
-        final OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
-        final JSONObject requestObject = requestToJson(accessRequest);
-        final OAuthClientResponse oAuthResponse = oAuthClient.accessToken(accessRequest);
-        final JSONObject responseObject = responseToJson(oAuthResponse);
-        final String accessToken = oAuthResponse.getParam("access_token");
-
-        session.setAttribute("requestObject", requestObject);
-        session.setAttribute("responseObject", responseObject);
-        if (accessToken != null) {
-            session.setAttribute("accessToken", accessToken);
-            String idToken = oAuthResponse.getParam("id_token");
-            if (idToken != null) {
-                session.setAttribute("idToken", idToken);
-            }
-            session.setAttribute("authenticated", true);
-            session.setAttribute("user", getUserAttributes(idToken));
-
-            TokenData tokenData = new TokenData();
-            tokenData.setAccessToken(accessToken);
-            tokenData.setIdToken(idToken);
-
-            final String sessionId = UUID.randomUUID().toString();
-            TOKEN_STORE.put(sessionId, tokenData);
-            final Cookie cookie = new Cookie("AppID", sessionId);
-            cookie.setMaxAge(-1);
-            cookie.setPath("/");
-            response.addCookie(cookie);
-        } else {
-            session.invalidate();
-        }
-    }
-
     private boolean isLogin(HttpServletRequest request) {
 
         String authzCode = request.getParameter("code");
@@ -236,5 +282,32 @@ public class OIDCCallbackResponseHandler extends HttpServlet {
 
         String error = request.getParameter(SSOAgentConstants.ERROR);
         return StringUtils.isNotBlank(error);
+    }
+
+    private boolean checkOAuth(final HttpServletRequest request) {
+
+        final HttpSession currentSession = request.getSession(false);
+
+        return currentSession != null
+                && currentSession.getAttribute("authenticated") != null
+                && (boolean) currentSession.getAttribute("authenticated");
+    }
+
+    private void setTokenDataToSession(final HttpSession session, final TokenData storedTokenData) {
+
+        session.setAttribute("authenticated", true);
+        session.setAttribute("accessToken", storedTokenData.getAccessToken());
+        session.setAttribute("idToken", storedTokenData.getIdToken());
+    }
+
+    private String getIndexPage(HttpSession session, Properties properties) {
+
+        if (StringUtils.isNotBlank(properties.getProperty(SSOAgentConstants.INDEX_PAGE))) {
+            return properties.getProperty(SSOAgentConstants.INDEX_PAGE);
+        } else if (session != null) {
+            return session.getServletContext().getContextPath();
+        } else {
+            return "./";
+        }
     }
 }
